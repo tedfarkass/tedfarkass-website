@@ -589,12 +589,7 @@ const ro = new IntersectionObserver(entries => {
 }, { threshold: 0.1 });
 document.querySelectorAll('.reveal').forEach(el => ro.observe(el));
 
-// TWITCH STATUS — no API key needed, uses public endpoint
-// Note: due to CORS this needs to be verified server-side in production.
-// For now we default to offline and you can manually toggle for testing.
-// When you're ready to deploy, I'll set up a free Netlify/Cloudflare function.
-
-function setLive(live) {
+function setLive(live, title) {
   const pill  = document.getElementById('livePill');
   const card  = document.getElementById('streamStatusCard');
   const orb   = document.getElementById('statusOrb');
@@ -608,7 +603,7 @@ function setLive(live) {
     orb.className = 'status-orb live';
     label.textContent = 'LIVE NOW';
     label.classList.add('live');
-    sub.textContent = 'TedFarkass is streaming on Twitch right now';
+    sub.textContent = title ? title : 'TedFarkass is streaming on Twitch right now';
     btn.textContent = '▶  Watch Live →';
   } else {
     pill.classList.remove('on');
@@ -621,8 +616,19 @@ function setLive(live) {
   }
 }
 
-// Default to offline — update to setLive(true) to preview the live state
-setLive(false);
+async function checkLiveStatus() {
+  try {
+    const res  = await fetch('/.netlify/functions/twitch-status');
+    const data = await res.json();
+    setLive(data.live, data.title);
+  } catch(e) {
+    setLive(false);
+  }
+}
+
+// Check on load, then every 2 minutes
+checkLiveStatus();
+setInterval(checkLiveStatus, 120000);
 </script>
 </body>
 </html>
