@@ -76,11 +76,12 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;display:flex;al
 .product-type-label.type-set{color:#3ecf6e;}
 .product-evs{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
 .ev-cell{background:var(--bg-4);border-radius:5px;padding:0.5rem 0.75rem;border:1px solid var(--border);display:flex;flex-direction:column;gap:0.1rem;}
-.ev-cell-label{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey-2);}
+.ev-cell-label{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--white);}
 .ev-cell-value{font-size:0.95rem;font-weight:600;color:var(--white);}
-.ev-cell-value.good{color:var(--green);}
-.ev-cell-value.mid{color:var(--yellow);}
-.ev-cell-value.bad{color:var(--red);}
+.ev-cell-value.type-play{color:#4d8ef0;}
+.ev-cell-value.type-collector{color:#a78bfa;}
+.ev-cell-value.type-draft{color:#f0b429;}
+.ev-cell-value.type-set{color:#3ecf6e;}
 .product-divider{height:1px;background:var(--border);margin:0.1rem 0;}
 .no-results{grid-column:1/-1;text-align:center;padding:4rem 2rem;font-family:'JetBrains Mono',monospace;font-size:0.85rem;color:var(--grey-3);letter-spacing:0.1em;}
 
@@ -245,13 +246,14 @@ function buildCard(set) {
     var evsDiv = document.createElement('div');
     evsDiv.className = 'product-evs';
 
+    var typeColorClass = 'type-' + p.type.toLowerCase();
     var packCell = document.createElement('div');
     packCell.className = 'ev-cell';
-    packCell.innerHTML = '<span class="ev-cell-label">Pack EV</span><span class="ev-cell-value">' + fmt(p.pack_ev) + '</span>';
+    packCell.innerHTML = '<span class="ev-cell-label">Pack EV</span><span class="ev-cell-value ' + typeColorClass + '">' + fmt(p.pack_ev) + '</span>';
 
     var boxCell = document.createElement('div');
     boxCell.className = 'ev-cell';
-    boxCell.innerHTML = '<span class="ev-cell-label">Box EV</span><span class="ev-cell-value ' + evClass(p.box_ev) + '">' + fmt(p.box_ev) + '</span>';
+    boxCell.innerHTML = '<span class="ev-cell-label">Box EV</span><span class="ev-cell-value ' + typeColorClass + '">' + fmt(p.box_ev) + '</span>';
 
     evsDiv.appendChild(packCell);
     evsDiv.appendChild(boxCell);
