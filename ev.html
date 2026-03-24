@@ -69,10 +69,14 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;display:flex;al
 .exp-val{color:var(--yellow);font-weight:500;}
 .card-products{padding:1rem 1.5rem;display:flex;flex-direction:column;gap:0.75rem;flex:1;}
 .product-row{display:flex;flex-direction:column;gap:0.3rem;}
-.product-type-label{font-family:'JetBrains Mono',monospace;font-size:0.63rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--grey-2);}
+.product-type-label{font-family:'JetBrains Mono',monospace;font-size:0.63rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--grey-1);}
+.product-type-label.type-play{color:#4d8ef0;}
+.product-type-label.type-collector{color:#a78bfa;}
+.product-type-label.type-draft{color:#f0b429;}
+.product-type-label.type-set{color:#3ecf6e;}
 .product-evs{display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;}
 .ev-cell{background:var(--bg-4);border-radius:5px;padding:0.5rem 0.75rem;border:1px solid var(--border);display:flex;flex-direction:column;gap:0.1rem;}
-.ev-cell-label{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey-3);}
+.ev-cell-label{font-family:'JetBrains Mono',monospace;font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--grey-2);}
 .ev-cell-value{font-size:0.95rem;font-weight:600;color:var(--white);}
 .ev-cell-value.good{color:var(--green);}
 .ev-cell-value.mid{color:var(--yellow);}
@@ -166,10 +170,7 @@ function parseSheets(rows) {
 }
 
 function evClass(boxEv) {
-  if (!boxEv) return '';
-  if (boxEv >= 200) return 'good';
-  if (boxEv >= 100) return 'mid';
-  return 'bad';
+  return ''; // color coding removed — booster types use color instead
 }
 
 function fmt(val) {
@@ -237,7 +238,8 @@ function buildCard(set) {
     row.className = 'product-row';
 
     var label = document.createElement('div');
-    label.className = 'product-type-label';
+    var typeClass = 'type-' + p.type.toLowerCase();
+    label.className = 'product-type-label ' + typeClass;
     label.textContent = p.type + ' Booster';
 
     var evsDiv = document.createElement('div');
@@ -302,10 +304,11 @@ function renderUI(sets, fetchedAt) {
 
   var legend = document.createElement('div');
   legend.className = 'legend';
-  legend.innerHTML = 
-    '<div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Good EV (box &gt; $200)</div>' +
-    '<div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> Mid EV ($100–$200)</div>' +
-    '<div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Low EV (&lt; $100)</div>';
+  legend.innerHTML =
+    '<div class="legend-item"><div class="legend-dot" style="background:#4d8ef0"></div> Play Booster</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div> Collector Booster</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:#f0b429"></div> Draft Booster</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:#3ecf6e"></div> Set Booster</div>';
 
   var grid = document.createElement('div');
   grid.className = 'sets-grid';
