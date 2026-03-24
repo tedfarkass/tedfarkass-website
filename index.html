@@ -86,7 +86,7 @@ nav {
 .hero {
   min-height: 100vh; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  text-align: center; padding: 80px 2rem 6rem; position: relative; overflow: hidden;
+  text-align: center; padding: 64px 2rem 2rem; position: relative; overflow: hidden;
 }
 .hero::before {
   content: '';
@@ -163,7 +163,7 @@ nav {
 .btn-ghost:hover { color: var(--white); }
 
 /* ── LAYOUT ── */
-section { padding: 7rem 2rem; }
+section { padding: 5rem 2rem; }
 .container { max-width: 1100px; margin: 0 auto; }
 .section-alt { background: var(--bg-2); }
 .section-header { margin-bottom: 3.5rem; }
@@ -431,33 +431,36 @@ footer { padding: 3rem 2rem; border-top: 1px solid var(--border); background: va
 
 <div class="rule"></div>
 
-<!-- STREAM -->
-<section id="stream">
+<!-- TOOLS -->
+<section id="tools">
   <div class="container">
     <div class="section-header reveal">
-      <span class="section-tag">Live Stream</span>
-      <h2 class="section-title">Twitch</h2>
-      <p class="section-sub">Sunday · Monday · Thursday — 7PM to 10PM EST</p>
+      <span class="section-tag">MTG Tools</span>
+      <h2 class="section-title">The Arsenal</h2>
+      <p class="section-sub">Free tools for Magic: The Gathering players, built by TedFarkass.</p>
     </div>
-    <div class="stream-status-card reveal" id="streamStatusCard">
-      <div class="stream-status-inner">
-        <div class="status-indicator" id="statusIndicator">
-          <div class="status-orb offline" id="statusOrb"></div>
-          <div class="status-text-group">
-            <span class="status-label" id="statusLabel">OFFLINE</span>
-            <span class="status-sub" id="statusSub">Next stream: check the schedule above</span>
-          </div>
-        </div>
-        <a href="https://twitch.tv/tedfarkass" class="btn btn-primary" id="twitchBtn" target="_blank">
-          Watch on Twitch →
-        </a>
-      </div>
-      <div class="stream-meta">
-        <a href="https://twitch.tv/tedfarkass" class="stream-meta-link" target="_blank">twitch.tv/tedfarkass</a>
-        <div class="stream-socials">
-          <a href="https://x.com/TedFarkAss" target="_blank" class="stream-meta-link">Follow on X for updates</a>
-        </div>
-      </div>
+    <div class="tools-grid reveal">
+      <a href="land-calculator.html" class="tool-card">
+        <span class="tool-icon">🌲</span>
+        <span class="tool-tag">Tool 01</span>
+        <div class="tool-name">Land Calculator</div>
+        <div class="tool-desc">Optimize your mana base. Calculate the ideal land count for any deck archetype or format.</div>
+        <span class="tool-arrow">Open tool →</span>
+      </a>
+      <a href="ev.html" class="tool-card">
+        <span class="tool-icon">📊</span>
+        <span class="tool-tag">Tool 02</span>
+        <div class="tool-name">EV Calculator</div>
+        <div class="tool-desc">Expected value analysis for MTG sets. Know what a box is worth before you crack it open.</div>
+        <span class="tool-arrow">Open tool →</span>
+      </a>
+      <a href="https://moxfield.com/users/tedfarkass" class="tool-card" target="_blank">
+        <span class="tool-icon">🃏</span>
+        <span class="tool-tag">Moxfield</span>
+        <div class="tool-name">Deck Lists</div>
+        <div class="tool-desc">Browse all of Ted's decks on Moxfield — decklists, archetypes, and builds for every format.</div>
+        <span class="tool-arrow">View on Moxfield →</span>
+      </a>
     </div>
   </div>
 </section>
@@ -515,36 +518,33 @@ footer { padding: 3rem 2rem; border-top: 1px solid var(--border); background: va
 
 <div class="rule"></div>
 
-<!-- TOOLS -->
-<section id="tools">
+<!-- STREAM -->
+<section id="stream">
   <div class="container">
     <div class="section-header reveal">
-      <span class="section-tag">MTG Tools</span>
-      <h2 class="section-title">The Arsenal</h2>
-      <p class="section-sub">Free tools for Magic: The Gathering players, built by TedFarkass.</p>
+      <span class="section-tag">Live Stream</span>
+      <h2 class="section-title">Twitch</h2>
+      <p class="section-sub">Sunday · Monday · Thursday — 7PM to 10PM EST</p>
     </div>
-    <div class="tools-grid reveal">
-      <a href="land-calculator.html" class="tool-card">
-        <span class="tool-icon">🌲</span>
-        <span class="tool-tag">Tool 01</span>
-        <div class="tool-name">Land Calculator</div>
-        <div class="tool-desc">Optimize your mana base. Calculate the ideal land count for any deck archetype or format.</div>
-        <span class="tool-arrow">Open tool →</span>
-      </a>
-      <a href="ev.html" class="tool-card">
-        <span class="tool-icon">📊</span>
-        <span class="tool-tag">Tool 02</span>
-        <div class="tool-name">EV Calculator</div>
-        <div class="tool-desc">Expected value analysis for MTG sets. Know what a box is worth before you crack it open.</div>
-        <span class="tool-arrow">Open tool →</span>
-      </a>
-      <a href="https://moxfield.com/users/tedfarkass" class="tool-card" target="_blank">
-        <span class="tool-icon">🃏</span>
-        <span class="tool-tag">Moxfield</span>
-        <div class="tool-name">Deck Lists</div>
-        <div class="tool-desc">Browse all of Ted's decks on Moxfield — decklists, archetypes, and builds for every format.</div>
-        <span class="tool-arrow">View on Moxfield →</span>
-      </a>
+    <div class="stream-status-card reveal" id="streamStatusCard">
+      <div class="stream-status-inner">
+        <div class="status-indicator" id="statusIndicator">
+          <div class="status-orb offline" id="statusOrb"></div>
+          <div class="status-text-group">
+            <span class="status-label" id="statusLabel">OFFLINE</span>
+            <span class="status-sub" id="statusSub">Next stream: check the schedule above</span>
+          </div>
+        </div>
+        <a href="https://twitch.tv/tedfarkass" class="btn btn-primary" id="twitchBtn" target="_blank">
+          Watch on Twitch →
+        </a>
+      </div>
+      <div class="stream-meta">
+        <a href="https://twitch.tv/tedfarkass" class="stream-meta-link" target="_blank">twitch.tv/tedfarkass</a>
+        <div class="stream-socials">
+          <a href="https://x.com/TedFarkAss" target="_blank" class="stream-meta-link">Follow on X for updates</a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
