@@ -343,6 +343,51 @@ button.secondary:hover { background: var(--bg-4); color: var(--white); border-co
   color: rgba(255,255,255,0.92);
   text-shadow: 0 1px 3px rgba(0,0,0,0.6);
 }
+
+/* LAND SUGGESTIONS DROPDOWN */
+.rec-row { cursor: pointer; user-select: none; }
+.rec-row:hover { background: rgba(77,142,240,0.06); border-radius: 4px; }
+.rec-row .toggle-arrow {
+  font-size: 0.6rem; color: var(--grey-3);
+  transition: transform 0.2s; flex-shrink: 0; margin-left: 0.3rem;
+}
+.rec-row.open .toggle-arrow { transform: rotate(90deg); color: var(--blue); }
+.land-suggestions {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.35s ease;
+  background: var(--bg-4);
+  border-radius: 0 0 6px 6px;
+  border: 1px solid transparent;
+  margin-bottom: 0;
+}
+.land-suggestions.open {
+  max-height: 400px;
+  border-color: var(--border);
+  margin-bottom: 0.25rem;
+}
+.suggestions-header {
+  padding: 0.5rem 1rem 0.4rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.62rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--grey-3);
+  border-bottom: 1px solid var(--border);
+}
+.land-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.45rem 1rem; font-size: 0.83rem; color: var(--grey-1);
+  transition: background 0.15s;
+}
+.land-item:hover { background: rgba(255,255,255,0.04); }
+.land-item a {
+  color: inherit; text-decoration: none; flex: 1; transition: color 0.15s;
+}
+.land-item a:hover { color: var(--blue); }
+.land-type-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem; letter-spacing: 0.1em;
+  padding: 0.15rem 0.5rem; border-radius: 3px;
+  border: 1px solid; flex-shrink: 0; font-weight: 500;
+}
 </style>
 </head>
 <body>
@@ -462,6 +507,217 @@ button.secondary:hover { background: var(--bg-4); color: var(--white); border-co
 </div>
 
 <script>
+
+const LAND_DB = {
+  // ── DUAL COLOR LANDS ──
+  WU: [
+    { name: 'Hallowed Fountain',    type: 'Shock Land' },
+    { name: 'Glacial Fortress',     type: 'Check Land' },
+    { name: 'Flooded Strand',       type: 'Fetch Land' },
+    { name: 'Mystic Gate',          type: 'Filter Land' },
+    { name: 'Adarkar Wastes',       type: 'Pain Land' },
+    { name: 'Seachrome Coast',      type: 'Fast Land' },
+    { name: 'Prairie Stream',       type: 'Battle Land' },
+    { name: 'Azorius Chancery',     type: 'Bounce Land' },
+  ],
+  WB: [
+    { name: 'Godless Shrine',       type: 'Shock Land' },
+    { name: 'Isolated Chapel',      type: 'Check Land' },
+    { name: 'Marsh Flats',          type: 'Fetch Land' },
+    { name: 'Fetid Heath',          type: 'Filter Land' },
+    { name: 'Caves of Koilos',      type: 'Pain Land' },
+    { name: 'Concealed Courtyard',  type: 'Fast Land' },
+    { name: 'Shambling Vent',       type: 'Battle Land' },
+    { name: 'Orzhov Basilica',      type: 'Bounce Land' },
+  ],
+  WR: [
+    { name: 'Sacred Foundry',       type: 'Shock Land' },
+    { name: 'Clifftop Retreat',     type: 'Check Land' },
+    { name: 'Arid Mesa',            type: 'Fetch Land' },
+    { name: 'Rugged Prairie',       type: 'Filter Land' },
+    { name: 'Battlefield Forge',    type: 'Pain Land' },
+    { name: 'Inspiring Vantage',    type: 'Fast Land' },
+    { name: 'Needle Spires',        type: 'Battle Land' },
+    { name: 'Boros Garrison',       type: 'Bounce Land' },
+  ],
+  WG: [
+    { name: 'Temple Garden',        type: 'Shock Land' },
+    { name: 'Sunpetal Grove',       type: 'Check Land' },
+    { name: 'Windswept Heath',      type: 'Fetch Land' },
+    { name: 'Wooded Bastion',       type: 'Filter Land' },
+    { name: 'Brushland',            type: 'Pain Land' },
+    { name: 'Razorverge Thicket',   type: 'Fast Land' },
+    { name: 'Canopy Vista',         type: 'Battle Land' },
+    { name: 'Selesnya Sanctuary',   type: 'Bounce Land' },
+  ],
+  UB: [
+    { name: 'Watery Grave',         type: 'Shock Land' },
+    { name: 'Drowned Catacomb',     type: 'Check Land' },
+    { name: 'Polluted Delta',       type: 'Fetch Land' },
+    { name: 'Sunken Ruins',         type: 'Filter Land' },
+    { name: 'Underground River',    type: 'Pain Land' },
+    { name: 'Darkslick Shores',     type: 'Fast Land' },
+    { name: 'Sunken Hollow',        type: 'Battle Land' },
+    { name: 'Dimir Aqueduct',       type: 'Bounce Land' },
+  ],
+  UR: [
+    { name: 'Steam Vents',          type: 'Shock Land' },
+    { name: 'Sulfur Falls',         type: 'Check Land' },
+    { name: 'Scalding Tarn',        type: 'Fetch Land' },
+    { name: 'Cascade Bluffs',       type: 'Filter Land' },
+    { name: 'Shivan Reef',          type: 'Pain Land' },
+    { name: 'Spirebluff Canal',     type: 'Fast Land' },
+    { name: 'Wandering Fumarole',   type: 'Battle Land' },
+    { name: 'Izzet Boilerworks',    type: 'Bounce Land' },
+  ],
+  UG: [
+    { name: 'Breeding Pool',        type: 'Shock Land' },
+    { name: 'Hinterland Harbor',    type: 'Check Land' },
+    { name: 'Misty Rainforest',     type: 'Fetch Land' },
+    { name: 'Flooded Grove',        type: 'Filter Land' },
+    { name: 'Yavimaya Coast',       type: 'Pain Land' },
+    { name: 'Botanical Sanctum',    type: 'Fast Land' },
+    { name: 'Lumbering Falls',      type: 'Battle Land' },
+    { name: 'Simic Growth Chamber', type: 'Bounce Land' },
+  ],
+  BR: [
+    { name: 'Blood Crypt',          type: 'Shock Land' },
+    { name: 'Dragonskull Summit',   type: 'Check Land' },
+    { name: 'Bloodstained Mire',    type: 'Fetch Land' },
+    { name: 'Graven Cairns',        type: 'Filter Land' },
+    { name: 'Sulfurous Springs',    type: 'Pain Land' },
+    { name: 'Blackcleave Cliffs',   type: 'Fast Land' },
+    { name: 'Smoldering Marsh',     type: 'Battle Land' },
+    { name: 'Rakdos Carnarium',     type: 'Bounce Land' },
+  ],
+  BG: [
+    { name: 'Overgrown Tomb',       type: 'Shock Land' },
+    { name: 'Woodland Cemetery',    type: 'Check Land' },
+    { name: 'Verdant Catacombs',    type: 'Fetch Land' },
+    { name: 'Twilight Mire',        type: 'Filter Land' },
+    { name: 'Llanowar Wastes',      type: 'Pain Land' },
+    { name: 'Blooming Marsh',       type: 'Fast Land' },
+    { name: 'Hissing Quagmire',     type: 'Battle Land' },
+    { name: 'Golgari Rot Farm',     type: 'Bounce Land' },
+  ],
+  RG: [
+    { name: 'Stomping Ground',      type: 'Shock Land' },
+    { name: 'Rootbound Crag',       type: 'Check Land' },
+    { name: 'Wooded Foothills',     type: 'Fetch Land' },
+    { name: 'Fire-Lit Thicket',     type: 'Filter Land' },
+    { name: 'Karplusan Forest',     type: 'Pain Land' },
+    { name: 'Copperline Gorge',     type: 'Fast Land' },
+    { name: 'Cinder Glade',         type: 'Battle Land' },
+    { name: 'Gruul Turf',           type: 'Bounce Land' },
+  ],
+
+  // ── TRICOLOR LANDS (Triomes) ──
+  WUB: [{ name: 'Obscura Storefront', type: 'Triome' }, { name: 'Raffine's Tower', type: 'Triome' }],
+  WUR: [{ name: 'Ziatora's Proving Ground', type: 'Triome' }, { name: 'Spara's Headquarters', type: 'Triome' }],
+  WUG: [{ name: 'Spara's Headquarters', type: 'Triome' }, { name: 'Mystic Monastery', type: 'Triome' }],
+  WBR: [{ name: 'Savai Triome',       type: 'Triome' }, { name: 'Nomad Outpost',     type: 'Triome' }],
+  WBG: [{ name: 'Indatha Triome',     type: 'Triome' }, { name: 'Sandsteppe Citadel',type: 'Triome' }],
+  WRG: [{ name: 'Naya Panorama',      type: 'Triome' }, { name: 'Jungle Shrine',     type: 'Triome' }],
+  UBR: [{ name: 'Zagoth Triome',      type: 'Triome' }, { name: 'Crumbling Necropolis', type: 'Triome' }],
+  UBG: [{ name: 'Zagoth Triome',      type: 'Triome' }, { name: 'Opulent Palace',    type: 'Triome' }],
+  URG: [{ name: 'Ketria Triome',      type: 'Triome' }, { name: 'Frontier Bivouac',  type: 'Triome' }],
+  BRG: [{ name: 'Savai Triome',       type: 'Triome' }, { name: 'Arcane Sanctum',    type: 'Triome' }],
+
+  // ── ANY COLOR / PRISM LANDS ──
+  PRISM: [
+    { name: 'Command Tower',       type: 'Any Color' },
+    { name: 'City of Brass',       type: 'Any Color' },
+    { name: 'Mana Confluence',     type: 'Any Color' },
+    { name: 'Reflecting Pool',     type: 'Any Color' },
+    { name: 'Exotic Orchard',      type: 'Any Color' },
+    { name: 'Forbidden Orchard',   type: 'Any Color' },
+    { name: 'Cascading Cataracts', type: 'Any Color' },
+    { name: 'Path of Ancestry',    type: 'Any Color' },
+    { name: 'Opal Palace',         type: 'Any Color' },
+  ],
+};
+
+const TYPE_COLORS = {
+  'Shock Land':  '#e05c5c',
+  'Check Land':  '#4d8ef0',
+  'Fetch Land':  '#f0b429',
+  'Filter Land': '#a78bfa',
+  'Pain Land':   '#e07c5c',
+  'Fast Land':   '#3ecf6e',
+  'Battle Land': '#60b4d0',
+  'Bounce Land': '#c084fc',
+  'Triome':      '#f472b6',
+  'Any Color':   '#ffffff',
+};
+
+// Build land suggestion dropdown for a color key (pair or trio)
+function buildSuggestions(colorKey) {
+  const lands = LAND_DB[colorKey];
+  if (!lands || !lands.length) return null;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'land-suggestions';
+
+  const header = document.createElement('div');
+  header.className = 'suggestions-header';
+  header.textContent = 'Suggested Lands — click to search Scryfall';
+  wrap.appendChild(header);
+
+  lands.forEach(land => {
+    const item = document.createElement('div');
+    item.className = 'land-item';
+
+    const scryfallUrl = 'https://scryfall.com/search?q=' + encodeURIComponent('!"' + land.name + '"');
+    const nameEl = document.createElement('a');
+    nameEl.href = scryfallUrl;
+    nameEl.target = '_blank';
+    nameEl.textContent = land.name;
+
+    const tagEl = document.createElement('span');
+    tagEl.className = 'land-type-tag';
+    tagEl.textContent = land.type;
+    const col = TYPE_COLORS[land.type] || '#6b6b78';
+    tagEl.style.color = col;
+    tagEl.style.borderColor = col + '55';
+    tagEl.style.background = col + '11';
+
+    item.appendChild(nameEl);
+    item.appendChild(tagEl);
+    wrap.appendChild(item);
+  });
+
+  return wrap;
+}
+
+// Attach dropdown toggle to a rec-row
+function attachDropdown(row, colorKey) {
+  const suggestions = buildSuggestions(colorKey);
+  if (!suggestions) return;
+
+  // Add arrow indicator
+  const arrow = document.createElement('span');
+  arrow.className = 'toggle-arrow';
+  arrow.textContent = '▶';
+  row.querySelector('.rec-syms')
+    ? row.querySelector('.rec-syms').after(arrow)
+    : row.appendChild(arrow);
+
+  row.after(suggestions);
+
+  row.addEventListener('click', (e) => {
+    // Don't toggle if clicking a link inside
+    if (e.target.tagName === 'A') return;
+    const isOpen = suggestions.classList.contains('open');
+    // Close all others first
+    document.querySelectorAll('.land-suggestions.open').forEach(s => s.classList.remove('open'));
+    document.querySelectorAll('.rec-row.open').forEach(r => r.classList.remove('open'));
+    if (!isOpen) {
+      suggestions.classList.add('open');
+      row.classList.add('open');
+    }
+  });
+}
+
 // setProgress helper — called from patched JS
 function setProgress(pct) {
   const wrap = document.getElementById('progressWrap');
@@ -844,17 +1100,17 @@ function setProgress(pct) {
       // Rainbow / Prism lands first
       if (prismLands > 0) {
         const syms = ['W','U','B','R','G'].map(s => manaImg(s)).join('');
-        html.push(`<div class="rec-row"><span class="rec-count">${prismLands}</span><span class="rec-name">Rainbow / Prism Lands</span><span class="rec-syms">${syms}</span></div>`);
+        html.push(`<div class="rec-row" data-colorkey="PRISM"><span class="rec-count">${prismLands}</span><span class="rec-name">Rainbow / Prism Lands</span><span class="rec-syms">${syms}</span></div>`);
       }
       // Tricolor lands with 3 mana symbols
       for (const t of triRecommendations) {
         const triSyms = t.trio.split('').map(s => manaImg(s)).join('');
-        html.push(`<div class="rec-row"><span class="rec-count">${t.count}</span><span class="rec-name">${t.trio} Tricolor Lands</span><span class="rec-syms">${triSyms}</span></div>`);
+        html.push(`<div class="rec-row" data-colorkey="${t.trio}"><span class="rec-count">${t.count}</span><span class="rec-name">${t.trio} Tricolor Lands</span><span class="rec-syms">${triSyms}</span></div>`);
       }
       // Dual lands with mana symbols
       for (const d of dualRecommendations) {
         const syms = (LAND_SYMBOLS[d.pair] || []).map(s => manaImg(s)).join('');
-        html.push(`<div class="rec-row"><span class="rec-count">${d.count}</span><span class="rec-name">${d.pair} Dual Lands</span><span class="rec-syms">${syms}</span></div>`);
+        html.push(`<div class="rec-row" data-colorkey="${d.pair}"><span class="rec-count">${d.count}</span><span class="rec-name">${d.pair} Dual Lands</span><span class="rec-syms">${syms}</span></div>`);
       }
       // Basic lands with single mana symbol
       for (const c of COLORS) {
@@ -866,6 +1122,11 @@ function setProgress(pct) {
 
       els.recommendation.innerHTML = html.length ? html.join('') : 'No recommendation available.';
       els.recommendationMeta.textContent = `Total lands: ${landCount}. Nonbasics: ${totalNonbasic}. Prism: ${prismLands}. Tricolor: ${triLands}. Dual: ${dualSlots}. Basics: ${basicSlots}.`;
+
+      // Attach land suggestion dropdowns to each rec-row
+      els.recommendation.querySelectorAll('.rec-row[data-colorkey]').forEach(row => {
+        attachDropdown(row, row.dataset.colorkey);
+      });
     }
 
     async function processDeck() {
