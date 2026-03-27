@@ -398,6 +398,13 @@ button.secondary:hover { background: var(--bg-4); color: var(--white); border-co
           </div>
           <input id="prismRate" type="range" min="0" max="35" value="0"/>
         </div>
+        <div class="control-row">
+          <div class="control-label">
+            <span>Tricolor Lands</span>
+            <div class="num-input-wrap"><input id="triRateValue" class="num-input" type="number" min="0" max="35" value="0"/><span class="num-suffix">%</span></div>
+          </div>
+          <input id="triRate" type="range" min="0" max="35" value="0"/>
+        </div>
       </div>
 
       <div class="buttons">
@@ -504,9 +511,11 @@ function setProgress(pct) {
       landCount: document.getElementById('landCount'),
       nonbasicRate: document.getElementById('nonbasicRate'),
       prismRate: document.getElementById('prismRate'),
+      triRate: document.getElementById('triRate'),
       landCountValue: document.getElementById('landCountValue'),
       nonbasicRateValue: document.getElementById('nonbasicRateValue'),
       prismRateValue: document.getElementById('prismRateValue'),
+      triRateValue: document.getElementById('triRateValue'),
       recommendation: document.getElementById('recommendation'),
       recommendationMeta: document.getElementById('recommendationMeta'),
       generalBars: document.getElementById('generalBars'),
@@ -559,6 +568,7 @@ function setProgress(pct) {
     syncSliderToInput(els.landCount,    document.getElementById('landCountValue'));
     syncSliderToInput(els.nonbasicRate, document.getElementById('nonbasicRateValue'));
     syncSliderToInput(els.prismRate,    document.getElementById('prismRateValue'));
+    syncSliderToInput(els.triRate,      document.getElementById('triRateValue'));
 
     // Live recalculate recommendation when sliders change after a deck is processed
     function liveRecalc() {
@@ -768,17 +778,42 @@ function setProgress(pct) {
     }
 
     function buildRecommendation(weightedRatio) {
-      const landCount = Number(els.landCount.value);
+      const landCount    = Number(els.landCount.value);
       const nonbasicRate = Number(els.nonbasicRate.value) / 100;
-      const prismRate = Number(els.prismRate.value) / 100;
+      const prismRate    = Number(els.prismRate.value) / 100;
+      const triRate      = Number(els.triRate.value) / 100;
 
       const totalNonbasic = Math.round(landCount * nonbasicRate);
-      const prismLands = Math.min(totalNonbasic, Math.round(landCount * prismRate));
-      const dualSlots = Math.max(0, totalNonbasic - prismLands);
-      const basicSlots = Math.max(0, landCount - prismLands - dualSlots);
+      const prismLands    = Math.min(totalNonbasic, Math.round(landCount * prismRate));
+      const triLands      = Math.min(totalNonbasic - prismLands, Math.round(landCount * triRate));
+      const dualSlots     = Math.max(0, totalNonbasic - prismLands - triLands);
+      const basicSlots    = Math.max(0, landCount - prismLands - triLands - dualSlots);
 
       const activeColors = COLORS.filter(c => (weightedRatio[c.key] || 0) > 0.001).map(c => c.key);
       const dualRecommendations = [];
+      const triRecommendations  = [];
+
+      // Tricolor land distribution
+      if (activeColors.length >= 3 && triLands > 0) {
+        const trios = [];
+        for (let i = 0; i < activeColors.length; i++) {
+          for (let j = i + 1; j < activeColors.length; j++) {
+            for (let k = j + 1; k < activeColors.length; k++) {
+              const a = activeColors[i], b = activeColors[j], cc = activeColors[k];
+              const overlap = Math.min(weightedRatio[a], weightedRatio[b], weightedRatio[cc]);
+              trios.push({ trio: a + b + cc, overlap });
+            }
+          }
+        }
+        const totalTriOverlap = trios.reduce((s, t) => s + t.overlap, 0) || 1;
+        const triRaw = {};
+        for (const t of trios) triRaw[t.trio] = triLands * (t.overlap / totalTriOverlap);
+        const roundedTris = roundLargestRemainder(triRaw, triLands);
+        for (const [trio, count] of Object.entries(roundedTris)) {
+          if (count > 0) triRecommendations.push({ trio, count });
+        }
+        triRecommendations.sort((a, b) => b.count - a.count || a.trio.localeCompare(b.trio));
+      }
 
       if (activeColors.length >= 2 && dualSlots > 0) {
         const pairs = [];
@@ -806,6 +841,16 @@ function setProgress(pct) {
       const names = { W: 'Plains', U: 'Island', B: 'Swamp', R: 'Mountain', G: 'Forest' };
       const html = [];
 
+      // Rainbow / Prism lands first
+      if (prismLands > 0) {
+        const syms = ['W','U','B','R','G'].map(s => manaImg(s)).join('');
+        html.push(`<div class="rec-row"><span class="rec-count">${prismLands}</span><span class="rec-name">Rainbow / Prism Lands</span><span class="rec-syms">${syms}</span></div>`);
+      }
+      // Tricolor lands with 3 mana symbols
+      for (const t of triRecommendations) {
+        const triSyms = t.trio.split('').map(s => manaImg(s)).join('');
+        html.push(`<div class="rec-row"><span class="rec-count">${t.count}</span><span class="rec-name">${t.trio} Tricolor Lands</span><span class="rec-syms">${triSyms}</span></div>`);
+      }
       // Dual lands with mana symbols
       for (const d of dualRecommendations) {
         const syms = (LAND_SYMBOLS[d.pair] || []).map(s => manaImg(s)).join('');
@@ -818,14 +863,9 @@ function setProgress(pct) {
           html.push(`<div class="rec-row"><span class="rec-count">${roundedBasics[c.key]}</span><span class="rec-name">${names[c.key]}</span><span class="rec-syms">${sym}</span></div>`);
         }
       }
-      // Rainbow lands
-      if (prismLands > 0) {
-        const syms = ['W','U','B','R','G'].map(s => manaImg(s)).join('');
-        html.unshift(`<div class="rec-row"><span class="rec-count">${prismLands}</span><span class="rec-name">Rainbow / Prism Lands</span><span class="rec-syms">${syms}</span></div>`);
-      }
 
       els.recommendation.innerHTML = html.length ? html.join('') : 'No recommendation available.';
-      els.recommendationMeta.textContent = `Total lands: ${landCount}. Nonbasics: ${totalNonbasic}. Dual slots: ${dualSlots}. Rainbow/prism slots: ${prismLands}. Basics: ${basicSlots}.`;
+      els.recommendationMeta.textContent = `Total lands: ${landCount}. Nonbasics: ${totalNonbasic}. Prism: ${prismLands}. Tricolor: ${triLands}. Dual: ${dualSlots}. Basics: ${basicSlots}.`;
     }
 
     async function processDeck() {
