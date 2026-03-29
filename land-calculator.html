@@ -487,6 +487,13 @@ button.secondary:hover { background: var(--bg-4); color: var(--white); border-co
           </div>
           <input id="triRate" type="range" min="0" max="35" value="0"/>
         </div>
+        <div class="control-row">
+          <div class="control-label">
+            <span>Fetch Lands</span>
+            <div class="num-input-wrap"><input id="fetchRateValue" class="num-input" type="number" min="0" max="35" value="0"/><span class="num-suffix">%</span></div>
+          </div>
+          <input id="fetchRate" type="range" min="0" max="35" value="0"/>
+        </div>
       </div>
 
       <div class="buttons">
@@ -660,6 +667,38 @@ const LAND_DB = {
   URG: [{ name: "Ketria Triome",             type: "Triome" }, { name: "Frontier Bivouac",         type: "Triome" }],
   BRG: [{ name: "Savai Triome",              type: "Triome" }, { name: "Arcane Sanctum",           type: "Triome" }],
 
+  // ── FETCH LANDS BY COLOR (what they can search for) ──
+  'FETCH-W': [
+    { name: 'Flooded Strand',   type: 'Fetch Land' },
+    { name: 'Windswept Heath',  type: 'Fetch Land' },
+    { name: 'Marsh Flats',      type: 'Fetch Land' },
+    { name: 'Arid Mesa',        type: 'Fetch Land' },
+  ],
+  'FETCH-U': [
+    { name: 'Flooded Strand',   type: 'Fetch Land' },
+    { name: 'Polluted Delta',   type: 'Fetch Land' },
+    { name: 'Scalding Tarn',    type: 'Fetch Land' },
+    { name: 'Misty Rainforest', type: 'Fetch Land' },
+  ],
+  'FETCH-B': [
+    { name: 'Polluted Delta',      type: 'Fetch Land' },
+    { name: 'Bloodstained Mire',   type: 'Fetch Land' },
+    { name: 'Marsh Flats',         type: 'Fetch Land' },
+    { name: 'Verdant Catacombs',   type: 'Fetch Land' },
+  ],
+  'FETCH-R': [
+    { name: 'Bloodstained Mire',  type: 'Fetch Land' },
+    { name: 'Wooded Foothills',   type: 'Fetch Land' },
+    { name: 'Scalding Tarn',      type: 'Fetch Land' },
+    { name: 'Arid Mesa',          type: 'Fetch Land' },
+  ],
+  'FETCH-G': [
+    { name: 'Wooded Foothills',   type: 'Fetch Land' },
+    { name: 'Windswept Heath',    type: 'Fetch Land' },
+    { name: 'Misty Rainforest',   type: 'Fetch Land' },
+    { name: 'Verdant Catacombs',  type: 'Fetch Land' },
+  ],
+
   // ── ANY COLOR / PRISM LANDS ──
   PRISM: [
     { name: 'Command Tower',       type: 'Any Color' },
@@ -805,10 +844,12 @@ function setProgress(pct) {
       nonbasicRate: document.getElementById('nonbasicRate'),
       prismRate: document.getElementById('prismRate'),
       triRate: document.getElementById('triRate'),
+      fetchRate: document.getElementById('fetchRate'),
       landCountValue: document.getElementById('landCountValue'),
       nonbasicRateValue: document.getElementById('nonbasicRateValue'),
       prismRateValue: document.getElementById('prismRateValue'),
       triRateValue: document.getElementById('triRateValue'),
+      fetchRateValue: document.getElementById('fetchRateValue'),
       recommendation: document.getElementById('recommendation'),
       recommendationMeta: document.getElementById('recommendationMeta'),
       generalBars: document.getElementById('generalBars'),
@@ -862,6 +903,7 @@ function setProgress(pct) {
     syncSliderToInput(els.nonbasicRate, document.getElementById('nonbasicRateValue'));
     syncSliderToInput(els.prismRate,    document.getElementById('prismRateValue'));
     syncSliderToInput(els.triRate,      document.getElementById('triRateValue'));
+    syncSliderToInput(els.fetchRate,    document.getElementById('fetchRateValue'));
 
     // Live recalculate recommendation when sliders change after a deck is processed
     function liveRecalc() {
@@ -1075,12 +1117,14 @@ function setProgress(pct) {
       const nonbasicRate = Number(els.nonbasicRate.value) / 100;
       const prismRate    = Number(els.prismRate.value) / 100;
       const triRate      = Number(els.triRate.value) / 100;
+      const fetchRate    = Number(els.fetchRate.value) / 100;
 
       const totalNonbasic = Math.round(landCount * nonbasicRate);
       const prismLands    = Math.min(totalNonbasic, Math.round(landCount * prismRate));
       const triLands      = Math.min(totalNonbasic - prismLands, Math.round(landCount * triRate));
-      const dualSlots     = Math.max(0, totalNonbasic - prismLands - triLands);
-      const basicSlots    = Math.max(0, landCount - prismLands - triLands - dualSlots);
+      const fetchLands    = Math.min(totalNonbasic - prismLands - triLands, Math.round(landCount * fetchRate));
+      const dualSlots     = Math.max(0, totalNonbasic - prismLands - triLands - fetchLands);
+      const basicSlots    = Math.max(0, landCount - prismLands - triLands - fetchLands - dualSlots);
 
       const activeColors = COLORS.filter(c => (weightedRatio[c.key] || 0) > 0.001).map(c => c.key);
       const dualRecommendations = [];
@@ -1106,6 +1150,19 @@ function setProgress(pct) {
           if (count > 0) triRecommendations.push({ trio, count });
         }
         triRecommendations.sort((a, b) => b.count - a.count || a.trio.localeCompare(b.trio));
+      }
+
+      // Fetch land distribution — scored by color weight
+      const fetchRecommendations = [];
+      if (activeColors.length >= 1 && fetchLands > 0) {
+        const totalFetchScore = activeColors.reduce((s, c) => s + (weightedRatio[c] || 0), 0) || 1;
+        const fetchRaw = {};
+        for (const c of activeColors) fetchRaw[c] = fetchLands * ((weightedRatio[c] || 0) / totalFetchScore);
+        const roundedFetches = roundLargestRemainder(fetchRaw, fetchLands);
+        for (const [color, count] of Object.entries(roundedFetches)) {
+          if (count > 0) fetchRecommendations.push({ color, count });
+        }
+        fetchRecommendations.sort((a, b) => b.count - a.count);
       }
 
       if (activeColors.length >= 2 && dualSlots > 0) {
@@ -1139,6 +1196,11 @@ function setProgress(pct) {
         const syms = ['W','U','B','R','G'].map(s => manaImg(s)).join('');
         html.push(`<div class="rec-row" data-colorkey="PRISM"><span class="rec-count">${prismLands}</span><span class="rec-name">Rainbow / Prism Lands</span><span class="rec-syms">${syms}</span></div>`);
       }
+      // Fetch lands
+      for (const f of fetchRecommendations) {
+        const sym = manaImg(f.color);
+        html.push(`<div class="rec-row" data-colorkey="FETCH-${f.color}"><span class="rec-count">${f.count}</span><span class="rec-name">${f.color} Fetch Lands</span><span class="rec-syms">${sym}</span></div>`);
+      }
       // Tricolor lands with 3 mana symbols
       for (const t of triRecommendations) {
         const triSyms = t.trio.split('').map(s => manaImg(s)).join('');
@@ -1158,7 +1220,7 @@ function setProgress(pct) {
       }
 
       els.recommendation.innerHTML = html.length ? html.join('') : 'No recommendation available.';
-      els.recommendationMeta.textContent = `Total lands: ${landCount}. Nonbasics: ${totalNonbasic}. Prism: ${prismLands}. Tricolor: ${triLands}. Dual: ${dualSlots}. Basics: ${basicSlots}.`;
+      els.recommendationMeta.textContent = `Total lands: ${landCount}. Nonbasics: ${totalNonbasic}. Prism: ${prismLands}. Tricolor: ${triLands}. Fetch: ${fetchLands}. Dual: ${dualSlots}. Basics: ${basicSlots}.`;
 
       // Attach land suggestion dropdowns to each rec-row
       els.recommendation.querySelectorAll('.rec-row[data-colorkey]').forEach(row => {
