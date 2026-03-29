@@ -669,34 +669,34 @@ const LAND_DB = {
 
   // ── FETCH LANDS BY COLOR (what they can search for) ──
   'FETCH-W': [
-    { name: 'Flooded Strand',   type: 'Fetch Land' },
-    { name: 'Windswept Heath',  type: 'Fetch Land' },
-    { name: 'Marsh Flats',      type: 'Fetch Land' },
-    { name: 'Arid Mesa',        type: 'Fetch Land' },
+    { name: 'Flooded Strand',   type: 'Fetches Plains/Island' },
+    { name: 'Windswept Heath',  type: 'Fetches Plains/Forest' },
+    { name: 'Marsh Flats',      type: 'Fetches Plains/Swamp' },
+    { name: 'Arid Mesa',        type: 'Fetches Plains/Mountain' },
   ],
   'FETCH-U': [
-    { name: 'Flooded Strand',   type: 'Fetch Land' },
-    { name: 'Polluted Delta',   type: 'Fetch Land' },
-    { name: 'Scalding Tarn',    type: 'Fetch Land' },
-    { name: 'Misty Rainforest', type: 'Fetch Land' },
+    { name: 'Flooded Strand',   type: 'Fetches Island/Plains' },
+    { name: 'Polluted Delta',   type: 'Fetches Island/Swamp' },
+    { name: 'Scalding Tarn',    type: 'Fetches Island/Mountain' },
+    { name: 'Misty Rainforest', type: 'Fetches Island/Forest' },
   ],
   'FETCH-B': [
-    { name: 'Polluted Delta',      type: 'Fetch Land' },
-    { name: 'Bloodstained Mire',   type: 'Fetch Land' },
-    { name: 'Marsh Flats',         type: 'Fetch Land' },
-    { name: 'Verdant Catacombs',   type: 'Fetch Land' },
+    { name: 'Polluted Delta',     type: 'Fetches Swamp/Island' },
+    { name: 'Bloodstained Mire',  type: 'Fetches Swamp/Mountain' },
+    { name: 'Marsh Flats',        type: 'Fetches Swamp/Plains' },
+    { name: 'Verdant Catacombs',  type: 'Fetches Swamp/Forest' },
   ],
   'FETCH-R': [
-    { name: 'Bloodstained Mire',  type: 'Fetch Land' },
-    { name: 'Wooded Foothills',   type: 'Fetch Land' },
-    { name: 'Scalding Tarn',      type: 'Fetch Land' },
-    { name: 'Arid Mesa',          type: 'Fetch Land' },
+    { name: 'Bloodstained Mire',  type: 'Fetches Mountain/Swamp' },
+    { name: 'Wooded Foothills',   type: 'Fetches Mountain/Forest' },
+    { name: 'Scalding Tarn',      type: 'Fetches Mountain/Island' },
+    { name: 'Arid Mesa',          type: 'Fetches Mountain/Plains' },
   ],
   'FETCH-G': [
-    { name: 'Wooded Foothills',   type: 'Fetch Land' },
-    { name: 'Windswept Heath',    type: 'Fetch Land' },
-    { name: 'Misty Rainforest',   type: 'Fetch Land' },
-    { name: 'Verdant Catacombs',  type: 'Fetch Land' },
+    { name: 'Wooded Foothills',   type: 'Fetches Forest/Mountain' },
+    { name: 'Windswept Heath',    type: 'Fetches Forest/Plains' },
+    { name: 'Misty Rainforest',   type: 'Fetches Forest/Island' },
+    { name: 'Verdant Catacombs',  type: 'Fetches Forest/Swamp' },
   ],
 
   // ── ANY COLOR / PRISM LANDS ──
@@ -724,6 +724,20 @@ const TYPE_COLORS = {
   'Bounce Land': '#c084fc',
   'Triome':      '#f472b6',
   'Any Color':   '#ffffff',
+  'Fetches Plains/Swamp':    '#f0b429',
+  'Fetches Plains/Mountain': '#f0b429',
+  'Fetches Island/Swamp':    '#f0b429',
+  'Fetches Island/Mountain': '#f0b429',
+  'Fetches Swamp/Island':    '#f0b429',
+  'Fetches Swamp/Mountain':  '#f0b429',
+  'Fetches Swamp/Plains':    '#f0b429',
+  'Fetches Swamp/Forest':    '#f0b429',
+  'Fetches Mountain/Swamp':  '#f0b429',
+  'Fetches Mountain/Forest': '#f0b429',
+  'Fetches Mountain/Island': '#f0b429',
+  'Fetches Mountain/Plains': '#f0b429',
+  'Fetches Forest/Mountain': '#f0b429',
+  'Fetches Forest/Swamp':    '#f0b429',
 };
 
 // Build land suggestion dropdown for a color key (pair or trio)
@@ -752,7 +766,8 @@ function buildSuggestions(colorKey) {
     const tagEl = document.createElement('span');
     tagEl.className = 'land-type-tag';
     tagEl.textContent = land.type;
-    const col = TYPE_COLORS[land.type] || '#6b6b78';
+    // Any "Fetches X/Y" type uses fetch gold color
+  const col = TYPE_COLORS[land.type] || (land.type.startsWith('Fetches') ? '#f0b429' : '#6b6b78');
     tagEl.style.color = col;
     tagEl.style.borderColor = col + '55';
     tagEl.style.background = col + '11';
