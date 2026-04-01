@@ -677,7 +677,7 @@ function setLive(live, title) {
 
 async function checkLiveStatus() {
   try {
-    const res  = await fetch('/.netlify/functions/twitch-status');
+    const res  = await fetch('https://twitch-status.tedfarkasstv.workers.dev');
     const data = await res.json();
     setLive(data.live, data.title);
   } catch(e) {
@@ -685,9 +685,9 @@ async function checkLiveStatus() {
   }
 }
 
-// Check on load, then every 2 minutes
+// Check on load, then every 10 minutes
 checkLiveStatus();
-setInterval(checkLiveStatus, 120000);
+setInterval(checkLiveStatus, 600000);
 </script>
 </body>
 </html>
