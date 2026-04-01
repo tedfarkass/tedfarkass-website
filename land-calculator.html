@@ -381,6 +381,38 @@ button.secondary:hover { background: var(--bg-4); color: var(--white); border-co
   text-shadow: 0 1px 3px rgba(0,0,0,0.6);
 }
 
+/* IMPORT ROW */
+.import-row {
+  display: flex; gap: 0.5rem; margin-bottom: 0.5rem;
+}
+.import-input {
+  flex: 1; background: var(--bg-3); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0.55rem 0.9rem;
+  color: var(--white); font-size: 0.85rem;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s;
+}
+.import-input:focus { outline: none; border-color: var(--blue); }
+.import-input::placeholder { color: var(--grey-3); }
+.btn-import {
+  background: var(--bg-4); border: 1px solid var(--border);
+  color: var(--grey-1); border-radius: 6px;
+  padding: 0.55rem 1.1rem; font-size: 0.85rem;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.05em; cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+  white-space: nowrap;
+}
+.btn-import:hover { background: var(--blue); color: var(--white); border-color: var(--blue); }
+.btn-import:disabled { opacity: 0.5; cursor: not-allowed; }
+.import-status {
+  font-size: 0.8rem; min-height: 1.2rem; margin-bottom: 0.3rem;
+  font-family: 'JetBrains Mono', monospace; letter-spacing: 0.05em;
+}
+.import-status.ok  { color: #3ecf6e; }
+.import-status.err { color: #e05c5c; }
+.import-status.loading { color: var(--grey-2); }
+
 /* LAND SUGGESTIONS DROPDOWN */
 .rec-row { cursor: pointer; user-select: none; }
 .rec-row:hover { background: rgba(77,142,240,0.06); border-radius: 4px; }
@@ -496,6 +528,11 @@ button.secondary:hover { background: var(--bg-4); color: var(--white); border-co
         </div>
       </div>
 
+      <div class="import-row">
+        <input id="importUrl" type="text" class="import-input" placeholder="Paste a Moxfield deck URL to import..."/>
+        <button id="importBtn" class="btn-import">Import</button>
+      </div>
+      <div id="importStatus" class="import-status"></div>
       <div class="buttons">
         <button id="processBtn">Process Deck</button>
         <button id="sampleBtn" class="secondary">Load Sample</button>
@@ -823,6 +860,60 @@ function attachDropdown(row, colorKey) {
     }
   });
 }
+
+// Moxfield import
+const MOXFIELD_WORKER = 'https://moxfield-import.tedfarkasstv.workers.dev';
+
+function extractMoxfieldId(url) {
+  const m = url.match(/moxfield\.com\/decks\/([A-Za-z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
+document.getElementById('importBtn').addEventListener('click', async function() {
+  const urlInput = document.getElementById('importUrl');
+  const status   = document.getElementById('importStatus');
+  const btn      = document.getElementById('importBtn');
+  const url      = urlInput.value.trim();
+
+  if (!url) {
+    status.className = 'import-status err';
+    status.textContent = 'Please paste a Moxfield deck URL first.';
+    return;
+  }
+
+  const deckId = extractMoxfieldId(url);
+  if (!deckId) {
+    status.className = 'import-status err';
+    status.textContent = 'Could not find a valid Moxfield deck URL.';
+    return;
+  }
+
+  btn.disabled = true;
+  status.className = 'import-status loading';
+  status.textContent = 'Importing deck...';
+
+  try {
+    const res  = await fetch(`${MOXFIELD_WORKER}?id=${deckId}`);
+    const data = await res.json();
+
+    if (data.error) {
+      status.className = 'import-status err';
+      status.textContent = 'Error: ' + data.error;
+      return;
+    }
+
+    document.getElementById('deckInput').value = data.cards.join('\n');
+    status.className = 'import-status ok';
+    status.textContent = `✓ Imported "${data.name}" — ${data.cards.length} entries. Click Process Deck to continue.`;
+    urlInput.value = '';
+
+  } catch(e) {
+    status.className = 'import-status err';
+    status.textContent = 'Network error — could not reach import service.';
+  } finally {
+    btn.disabled = false;
+  }
+});
 
 // setProgress helper — called from patched JS
 function setProgress(pct) {
