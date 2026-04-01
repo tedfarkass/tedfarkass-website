@@ -383,7 +383,7 @@ button.secondary:hover { background: var(--bg-4); color: var(--white); border-co
 
 /* IMPORT ROW */
 .import-row {
-  display: flex; gap: 0.5rem; margin-bottom: 0.5rem;
+  display: flex; gap: 0.5rem; margin-top: 0.5rem; margin-bottom: 1rem;
 }
 .import-input {
   flex: 1; background: var(--bg-3); border: 1px solid var(--border);
@@ -489,6 +489,11 @@ button.secondary:hover { background: var(--bg-4); color: var(--white); border-co
       <span class="panel-tag">Input</span>
       <h2 class="panel-title">Deck List</h2>
       <textarea id="deckInput" placeholder="1 Swords to Plowshares&#10;1 Sol Ring&#10;1 Lightning Helix&#10;1 Ancient Copper Dragon&#10;1 Godless Shrine"></textarea>
+      <div class="import-row">
+        <input id="importUrl" type="text" class="import-input" placeholder="Paste a Moxfield deck URL to import..."/>
+        <button id="importBtn" class="btn-import">Import</button>
+      </div>
+      <div id="importStatus" class="import-status"></div>
 
       <div class="controls">
         <div class="control-row">
@@ -528,11 +533,6 @@ button.secondary:hover { background: var(--bg-4); color: var(--white); border-co
         </div>
       </div>
 
-      <div class="import-row">
-        <input id="importUrl" type="text" class="import-input" placeholder="Paste a Moxfield deck URL to import..."/>
-        <button id="importBtn" class="btn-import">Import</button>
-      </div>
-      <div id="importStatus" class="import-status"></div>
       <div class="buttons">
         <button id="processBtn">Process Deck</button>
         <button id="sampleBtn" class="secondary">Load Sample</button>
