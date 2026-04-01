@@ -393,7 +393,7 @@ button.secondary:hover { background: var(--bg-4); color: var(--white); border-co
   transition: border-color 0.2s;
 }
 .import-input:focus { outline: none; border-color: var(--blue); }
-.import-input::placeholder { color: var(--grey-3); }
+.import-input::placeholder { color: var(--grey-2); }
 .btn-import {
   background: var(--bg-4); border: 1px solid var(--border);
   color: var(--grey-1); border-radius: 6px;
@@ -411,7 +411,7 @@ button.secondary:hover { background: var(--bg-4); color: var(--white); border-co
 }
 .import-status.ok  { color: #3ecf6e; }
 .import-status.err { color: #e05c5c; }
-.import-status.loading { color: var(--grey-2); }
+.import-status.loading { color: var(--grey-1); }
 
 /* LAND SUGGESTIONS DROPDOWN */
 .rec-row { cursor: pointer; user-select: none; }
@@ -490,7 +490,7 @@ button.secondary:hover { background: var(--bg-4); color: var(--white); border-co
       <h2 class="panel-title">Deck List</h2>
       <textarea id="deckInput" placeholder="1 Swords to Plowshares&#10;1 Sol Ring&#10;1 Lightning Helix&#10;1 Ancient Copper Dragon&#10;1 Godless Shrine"></textarea>
       <div class="import-row">
-        <input id="importUrl" type="text" class="import-input" placeholder="Paste a Moxfield deck URL to import..."/>
+        <input id="importUrl" type="text" class="import-input" placeholder="Paste a Moxfield or Archidekt deck URL..."/>
         <button id="importBtn" class="btn-import">Import</button>
       </div>
       <div id="importStatus" class="import-status"></div>
@@ -861,12 +861,17 @@ function attachDropdown(row, colorKey) {
   });
 }
 
-// Moxfield import
-const MOXFIELD_WORKER = 'https://moxfield-import.tedfarkasstv.workers.dev';
+// Deck URL import — supports Moxfield and Archidekt
+const IMPORT_WORKER = 'https://moxfield-import.tedfarkasstv.workers.dev';
 
-function extractMoxfieldId(url) {
-  const m = url.match(/moxfield\.com\/decks\/([A-Za-z0-9_-]+)/);
-  return m ? m[1] : null;
+function detectDeckSite(url) {
+  if (/moxfield\.com\/decks\/([A-Za-z0-9_-]+)/.test(url)) {
+    return { site: 'moxfield', id: url.match(/moxfield\.com\/decks\/([A-Za-z0-9_-]+)/)[1] };
+  }
+  if (/archidekt\.com\/decks\/(\d+)/.test(url)) {
+    return { site: 'archidekt', id: url.match(/archidekt\.com\/decks\/(\d+)/)[1] };
+  }
+  return null;
 }
 
 document.getElementById('importBtn').addEventListener('click', async function() {
@@ -877,14 +882,14 @@ document.getElementById('importBtn').addEventListener('click', async function() 
 
   if (!url) {
     status.className = 'import-status err';
-    status.textContent = 'Please paste a Moxfield deck URL first.';
+    status.textContent = 'Please paste a deck URL first.';
     return;
   }
 
-  const deckId = extractMoxfieldId(url);
-  if (!deckId) {
+  const deck = detectDeckSite(url);
+  if (!deck) {
     status.className = 'import-status err';
-    status.textContent = 'Could not find a valid Moxfield deck URL.';
+    status.textContent = 'Unsupported URL — paste a Moxfield or Archidekt deck link.';
     return;
   }
 
@@ -893,7 +898,7 @@ document.getElementById('importBtn').addEventListener('click', async function() 
   status.textContent = 'Importing deck...';
 
   try {
-    const res  = await fetch(`${MOXFIELD_WORKER}?id=${deckId}`);
+    const res  = await fetch(`${IMPORT_WORKER}?id=${deck.id}&site=${deck.site}`);
     const data = await res.json();
 
     if (data.error) {
