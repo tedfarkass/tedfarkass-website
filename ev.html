@@ -519,6 +519,7 @@ function parseAndRenderCards(rows) {
   var colNum      = headers.indexOf('Collector_Number');
   var colRarity   = headers.indexOf('Rarity');
   var colScryfallPage = headers.indexOf('Scryfall Page');
+  if (colScryfallPage < 0) colScryfallPage = headers.indexOf('Scryfall Img');
   var colNF       = headers.indexOf('USD Final');
   var colFoil     = headers.indexOf('USD Foil Final');
   var colEtched   = headers.indexOf('USD Etched Final');
@@ -832,12 +833,31 @@ function manualRefresh() {
   fetchEVData();
 }
 
+// Worker URL for Master EV cache — shared across all visitors
+const EV_CACHE_WORKER_URL = 'https://master-ev-cache.tedfarkasstv.workers.dev';
+
 async function fetchEVData() {
   var cached = loadCache();
   if (cached) {
     renderUI(cached.sets, formatTs(cached.ts) + ' (cached ' + Math.round((Date.now()-cached.ts)/60000) + 'm ago)');
     return;
   }
+
+  // Try Worker first (shared cache — fast for everyone)
+  try {
+    var res = await fetch(EV_CACHE_WORKER_URL);
+    if (!res.ok) throw new Error('Worker HTTP ' + res.status);
+    var data = await res.json();
+    var sets = parseSheets(data.values || []);
+    if (!sets.length) throw new Error('No sets found in Worker cache.');
+    saveCache(sets);
+    renderUI(sets, formatTs(Date.now()));
+    return;
+  } catch(workerErr) {
+    console.warn('Worker failed, falling back to Sheets API:', workerErr.message);
+  }
+
+  // Fallback: hit Google Sheets API directly
   var url = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + '/values/' + encodeURIComponent(SHEET_TAB) + '?key=' + API_KEY;
   try {
     var res = await fetch(url);
