@@ -11,7 +11,7 @@
 <link rel="canonical" href="https://www.tedfarkass.com/ev.html"/>
 <meta property="og:type" content="website"/>
 <meta property="og:url" content="https://www.tedfarkass.com/ev.html"/>
-<meta property="og:title" content="<title>MTG Box Value Guide — Is It Worth Gambling? | TedFarkass</title>?"/>
+<meta property="og:title" content="MTG Booster Box EV — Is It Worth Cracking?"/>
 <meta property="og:description" content="Daily expected value data for Magic: The Gathering booster boxes and packs. Know exactly what a box is worth before you crack it. Free tool by TedFarkass, updated daily."/>
 <meta property="og:site_name" content="TedFarkass"/>
 <meta name="theme-color" content="#4d8ef0"/>
@@ -197,8 +197,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;display:flex;al
   <a class="back-link" href="index.html">&#8592; Back to TedFarkass.com</a>
   <div class="page-header">
     <span class="page-tag">MTG TOOL 02</span>
-    <h1 class="page-title">MTG Box Value Guide</h1>
-<p class="page-sub">Standing in a store and not sure which box to crack? This is the estimated value data for Magic: The Gathering sets, curated and updated by TedFarkass. Prices updated daily after 4pm CT. Click any set to browse individual card prices.</p>    <button id="refreshBtn" class="refresh-btn" onclick="manualRefresh()">&#8635; Refresh Data</button>
+    <h1 class="page-title">EV Sheet</h1>
+    <p class="page-sub">Expected value data for Magic: The Gathering sets, curated and updated by TedFarkass. Prices updated daily after 4pm CT. Click any set to browse individual card prices.</p>
+    <button id="refreshBtn" class="refresh-btn" onclick="manualRefresh()">&#8635; Refresh Data</button>
   </div>
   <div id="appContent">
     <div class="loading-state">
@@ -616,113 +617,173 @@ function setOverlayFilter(filter) {
   renderOverlayCards();
 }
 
+// ── Infinite scroll state ────────────────────────────────────────────────
+var overlayPageSize   = 50;
+var overlayPageIndex  = 0;
+var overlaySorted     = [];
+var overlayScrollBusy = false;
+
+function sortCards(filtered) {
+  var ultraRare  = filtered.filter(function(c) { return c.ultra; });
+  var normal     = filtered.filter(function(c) { return !c.ultra && c.bestPrice > 0; });
+  var zeroDollar = filtered.filter(function(c) { return !c.ultra && c.bestPrice === 0; });
+  ultraRare.sort(function(a,b) { return b.bestPrice - a.bestPrice; });
+  normal.sort(function(a,b)    { return b.bestPrice - a.bestPrice; });
+  return ultraRare.concat(normal).concat(zeroDollar);
+}
+
+function buildCardElement(card) {
+  var item = document.createElement('div');
+  item.className = 'card-item' + (card.ultra ? ' ultra-rare' : '');
+
+  var imgWrap = document.createElement('div');
+  imgWrap.className = 'card-img-wrap';
+
+  var placeholder = document.createElement('div');
+  placeholder.className = 'card-img-placeholder';
+  placeholder.textContent = card.name;
+
+  if (card.imgUrl) {
+    var img = document.createElement('img');
+    img.className = 'loading';
+    img.alt = card.name;
+    img.loading = 'lazy';
+    img.src = card.imgUrl;
+    img.onload = function() { this.classList.remove('loading'); placeholder.style.display = 'none'; };
+    img.onerror = function() { this.style.display = 'none'; };
+    imgWrap.appendChild(img);
+  }
+
+  if (card.ultra) {
+    var badge = document.createElement('div');
+    badge.className = 'ultra-rare-badge';
+    badge.textContent = '★ ULTRA RARE';
+    imgWrap.appendChild(badge);
+  }
+
+  imgWrap.appendChild(placeholder);
+
+  var info = document.createElement('div');
+  info.className = 'card-info';
+
+  var nameEl = document.createElement('div');
+  nameEl.className = 'card-name';
+  nameEl.textContent = card.name;
+
+  var metaEl = document.createElement('div');
+  metaEl.className = 'card-meta rarity-' + card.rarity;
+  metaEl.textContent = card.set.toUpperCase() + ' #' + card.num + ' · ' + card.rarity;
+
+  var pricesEl = document.createElement('div');
+  pricesEl.className = 'card-prices';
+
+  function priceRow(label, val, cls) {
+    var row = document.createElement('div');
+    row.className = 'card-price-row';
+    var lbl = document.createElement('span');
+    lbl.className = 'card-price-label';
+    lbl.textContent = label;
+    var valEl = document.createElement('span');
+    valEl.className = 'card-price-val ' + (val > 0 ? cls : 'zero');
+    valEl.textContent = val > 0 ? '$' + val.toFixed(2) : '—';
+    row.appendChild(lbl);
+    row.appendChild(valEl);
+    return row;
+  }
+
+  if (card.nf > 0 || card.foil === 0)  pricesEl.appendChild(priceRow('Non-Foil', card.nf, 'nf'));
+  if (card.foil > 0)   pricesEl.appendChild(priceRow('Foil', card.foil, 'foil'));
+  if (card.etched > 0) pricesEl.appendChild(priceRow('Etched', card.etched, 'etched'));
+  if (card.nf === 0 && card.foil === 0 && card.etched === 0) {
+    pricesEl.appendChild(priceRow('Non-Foil', 0, 'nf'));
+  }
+
+  info.appendChild(nameEl);
+  info.appendChild(metaEl);
+  info.appendChild(pricesEl);
+  item.appendChild(imgWrap);
+  item.appendChild(info);
+  return item;
+}
+
+function appendNextPage() {
+  var grid = document.getElementById('overlayGrid');
+  if (!grid) return;
+  var start = overlayPageIndex * overlayPageSize;
+  var end   = Math.min(start + overlayPageSize, overlaySorted.length);
+  if (start >= overlaySorted.length) return;
+
+  for (var i = start; i < end; i++) {
+    grid.appendChild(buildCardElement(overlaySorted[i]));
+  }
+
+  overlayPageIndex++;
+
+  // Update loading indicator
+  var loadingMore = document.getElementById('overlayLoadingMore');
+  if (loadingMore) {
+    if (overlayPageIndex * overlayPageSize >= overlaySorted.length) {
+      loadingMore.style.display = 'none';
+    } else {
+      loadingMore.style.display = 'flex';
+    }
+  }
+}
+
 function renderOverlayCards() {
   var filtered = overlayFilter === 'all'
     ? overlayCards
     : overlayCards.filter(function(c) { return c.set === overlayFilter; });
 
-  // Sort: ultra rares first (sorted by best price desc), then rest by best price desc, $0 cards at bottom
-  var ultraRare = filtered.filter(function(c) { return c.ultra; });
-  var normal    = filtered.filter(function(c) { return !c.ultra && c.bestPrice > 0; });
-  var zeroDollar = filtered.filter(function(c) { return !c.ultra && c.bestPrice === 0; });
-
-  ultraRare.sort(function(a,b) { return b.bestPrice - a.bestPrice; });
-  normal.sort(function(a,b) { return b.bestPrice - a.bestPrice; });
-
-  var sorted = ultraRare.concat(normal).concat(zeroDollar);
+  overlaySorted    = sortCards(filtered);
+  overlayPageIndex = 0;
 
   var countEl = document.getElementById('overlayCount');
-  if (countEl) countEl.textContent = sorted.length + ' cards';
+  if (countEl) countEl.textContent = overlaySorted.length + ' cards';
 
   var body = document.getElementById('overlayBody');
   body.innerHTML = '';
 
-  if (sorted.length === 0) {
+  if (overlaySorted.length === 0) {
     body.innerHTML = '<div style="text-align:center;padding:3rem;font-family:JetBrains Mono,monospace;color:var(--grey-3);">NO CARDS FOUND</div>';
     return;
   }
 
   var grid = document.createElement('div');
   grid.className = 'cards-grid';
-
-  sorted.forEach(function(card) {
-    var item = document.createElement('div');
-    item.className = 'card-item' + (card.ultra ? ' ultra-rare' : '');
-
-    // Image wrapper
-    var imgWrap = document.createElement('div');
-    imgWrap.className = 'card-img-wrap';
-
-    var placeholder = document.createElement('div');
-    placeholder.className = 'card-img-placeholder';
-    placeholder.textContent = card.name;
-
-    if (card.imgUrl) {
-      var img = document.createElement('img');
-      img.className = 'loading';
-      img.alt = card.name;
-      img.loading = 'lazy';
-      img.src = card.imgUrl;
-      img.onload = function() { this.classList.remove('loading'); placeholder.style.display = 'none'; };
-      img.onerror = function() { this.style.display = 'none'; };
-      imgWrap.appendChild(img);
-    }
-
-    if (card.ultra) {
-      var badge = document.createElement('div');
-      badge.className = 'ultra-rare-badge';
-      badge.textContent = '★ ULTRA RARE';
-      imgWrap.appendChild(badge);
-    }
-
-    imgWrap.appendChild(placeholder);
-
-    // Card info
-    var info = document.createElement('div');
-    info.className = 'card-info';
-
-    var nameEl = document.createElement('div');
-    nameEl.className = 'card-name';
-    nameEl.textContent = card.name;
-
-    var metaEl = document.createElement('div');
-    metaEl.className = 'card-meta rarity-' + card.rarity;
-    metaEl.textContent = card.set.toUpperCase() + ' #' + card.num + ' · ' + card.rarity;
-
-    var pricesEl = document.createElement('div');
-    pricesEl.className = 'card-prices';
-
-    function priceRow(label, val, cls) {
-      var row = document.createElement('div');
-      row.className = 'card-price-row';
-      var lbl = document.createElement('span');
-      lbl.className = 'card-price-label';
-      lbl.textContent = label;
-      var valEl = document.createElement('span');
-      valEl.className = 'card-price-val ' + (val > 0 ? cls : 'zero');
-      valEl.textContent = val > 0 ? '$' + val.toFixed(2) : '—';
-      row.appendChild(lbl);
-      row.appendChild(valEl);
-      return row;
-    }
-
-    if (card.nf > 0 || card.foil === 0)  pricesEl.appendChild(priceRow('Non-Foil', card.nf, 'nf'));
-    if (card.foil > 0)   pricesEl.appendChild(priceRow('Foil', card.foil, 'foil'));
-    if (card.etched > 0) pricesEl.appendChild(priceRow('Etched', card.etched, 'etched'));
-    if (card.nf === 0 && card.foil === 0 && card.etched === 0) {
-      pricesEl.appendChild(priceRow('Non-Foil', 0, 'nf'));
-    }
-
-    info.appendChild(nameEl);
-    info.appendChild(metaEl);
-    info.appendChild(pricesEl);
-
-    item.appendChild(imgWrap);
-    item.appendChild(info);
-    grid.appendChild(item);
-  });
-
+  grid.id = 'overlayGrid';
   body.appendChild(grid);
+
+  // Loading indicator at bottom
+  var loadingMore = document.createElement('div');
+  loadingMore.id = 'overlayLoadingMore';
+  loadingMore.style.cssText = 'display:none;justify-content:center;align-items:center;padding:2rem;gap:0.75rem;font-family:JetBrains Mono,monospace;font-size:0.72rem;letter-spacing:0.1em;color:var(--grey-2);';
+  loadingMore.innerHTML = '<div class="loading-spinner" style="width:20px;height:20px;"></div> LOADING MORE...';
+  body.appendChild(loadingMore);
+
+  // Load first page
+  appendNextPage();
+
+  // Set up infinite scroll observer
+  var sentinel = document.createElement('div');
+  sentinel.id = 'overlayScrollSentinel';
+  sentinel.style.height = '1px';
+  body.appendChild(sentinel);
+
+  if (window._overlayObserver) window._overlayObserver.disconnect();
+  window._overlayObserver = new IntersectionObserver(function(entries) {
+    if (entries[0].isIntersecting && !overlayScrollBusy) {
+      if (overlayPageIndex * overlayPageSize < overlaySorted.length) {
+        overlayScrollBusy = true;
+        setTimeout(function() {
+          appendNextPage();
+          overlayScrollBusy = false;
+        }, 100);
+      }
+    }
+  }, { root: body, rootMargin: '200px' });
+
+  window._overlayObserver.observe(sentinel);
 }
 
 // ── CACHE & REFRESH ───────────────────────────────────────────────────────
