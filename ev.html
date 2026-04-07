@@ -162,6 +162,21 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;display:flex;al
 .rarity-uncommon{color:#a0c0d0;}
 .rarity-rare{color:#e0c060;}
 .rarity-mythic{color:#e07030;}
+
+.load-more-btn {
+  display: block; margin: 2rem auto;
+  padding: 0.8rem 2.5rem;
+  background: transparent;
+  border: 1px solid var(--border-mid);
+  border-radius: 6px;
+  color: var(--grey-1);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem; letter-spacing: 0.15em;
+  text-transform: uppercase; cursor: pointer;
+  transition: all 0.2s;
+}
+.load-more-btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(77,142,240,0.05); }
+#scrollSentinel { height: 1px; }
 </style>
 </head>
 <body>
@@ -305,6 +320,8 @@ var searchQuery  = '';
 
 function applyFilters() {
   var cards = document.querySelectorAll('.set-card');
+  // Note: only filters currently rendered cards
+  // Unrendered sets will be filtered when they load in
   var visible = 0;
   cards.forEach(function(card) {
     var nameMatch = card.dataset.name.indexOf(searchQuery) !== -1;
@@ -446,13 +463,58 @@ function renderUI(sets, fetchedAt) {
   var grid = document.createElement('div');
   grid.className = 'sets-grid';
   grid.id = 'setsGrid';
-  sets.forEach(function(set) { grid.appendChild(buildCard(set)); });
+
+  // Load More button
+  var loadMoreBtn = document.createElement('button');
+  loadMoreBtn.id = 'loadMoreBtn';
+  loadMoreBtn.className = 'load-more-btn';
+  loadMoreBtn.textContent = 'Load More Sets';
+  loadMoreBtn.style.display = 'none';
+
+  // Sentinel for IntersectionObserver
+  var sentinel = document.createElement('div');
+  sentinel.id = 'scrollSentinel';
 
   app.innerHTML = '';
   app.appendChild(toolbar);
   app.appendChild(lastUpdated);
   app.appendChild(legend);
   app.appendChild(grid);
+  app.appendChild(sentinel);
+  app.appendChild(loadMoreBtn);
+
+  // Lazy render state
+  window._allSets    = sets;
+  window._rendered   = 0;
+  window._batchSize  = 10;
+
+  function renderNextBatch() {
+    var batch = window._allSets.slice(window._rendered, window._rendered + window._batchSize);
+    batch.forEach(function(set) { grid.appendChild(buildCard(set)); });
+    window._rendered += batch.length;
+    var hasMore = window._rendered < window._allSets.length;
+    loadMoreBtn.style.display = hasMore ? 'block' : 'none';
+    sentinel.style.display    = hasMore ? 'block' : 'none';
+    applyFilters();
+  }
+
+  // Initial batch
+  renderNextBatch();
+
+  // Load More button click
+  loadMoreBtn.addEventListener('click', renderNextBatch);
+
+  // IntersectionObserver — auto load when sentinel is visible
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting && window._rendered < window._allSets.length) {
+          renderNextBatch();
+        }
+      });
+    }, { rootMargin: '200px' });
+    observer.observe(sentinel);
+  }
 
   document.getElementById('searchInput').addEventListener('input', function(e) {
     searchQuery = e.target.value.toLowerCase();
