@@ -62,9 +62,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;display:flex;al
 .page-tag{font-family:'JetBrains Mono',monospace;font-size:0.68rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--blue);margin-bottom:0.4rem;display:block;}
 .page-title{font-family:'KOTH',sans-serif;font-size:clamp(2rem,5vw,3rem);color:var(--white);line-height:1.05;margin-bottom:0.4rem;}
 .page-sub{font-size:0.9rem;color:var(--grey-2);font-weight:300;max-width:600px;line-height:1.7;}
-.refresh-btn{margin-top:1rem;font-family:'JetBrains Mono',sans-serif;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;padding:0.5rem 1.2rem;background:transparent;border:1px solid var(--border-mid);border-radius:4px;color:var(--grey-2);cursor:pointer;transition:all 0.2s;}
-.refresh-btn:hover{color:var(--white);border-color:var(--blue);}
-.refresh-btn:disabled{opacity:0.4;cursor:not-allowed;}
+
+
+
 .loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:5rem 2rem;gap:1.2rem;text-align:center;}
 .loading-spinner{width:36px;height:36px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--blue);animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -216,7 +216,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:64px;display:flex;al
     <span class="page-tag">MTG TOOL 02</span>
     <h1 class="page-title">MTG Box Value Guide</h1>
     <p class="page-sub">Standing in a store and not sure which box to lose money on? This is the estimated value data for Magic: The Gathering sets, curated and updated by TedFarkass. Prices updated daily after 4pm CT. Click any set to browse individual card prices.</p>
-    <button id="refreshBtn" class="refresh-btn" onclick="manualRefresh()">&#8635; Refresh Data</button>
   </div>
   <div id="appContent">
     <div class="loading-state">
@@ -247,8 +246,6 @@ const SET_NAME_SKIP = [
 var CACHE_KEY          = 'tedfarkass_ev_data';
 var CACHE_TS_KEY       = 'tedfarkass_ev_ts';
 var CACHE_TTL_MS       = 24 * 60 * 60 * 1000; // 24 hours
-var MANUAL_REFRESH_KEY = 'tedfarkass_ev_last_manual';
-var MANUAL_COOLDOWN_MS = 5 * 60 * 1000;
 
 // ── Current overlay state ──────────────────────────────────────────────
 var overlayCards      = [];
@@ -528,7 +525,7 @@ function renderUI(sets, fetchedAt) {
       applyFilters();
     });
   });
-  updateRefreshBtn();
+  
 }
 
 // ── OVERLAY ───────────────────────────────────────────────────────────────
@@ -871,31 +868,7 @@ function saveCache(sets) {
   } catch(e) {}
 }
 
-function updateRefreshBtn() {
-  var btn = document.getElementById('refreshBtn');
-  if (!btn) return;
-  var last = parseInt(localStorage.getItem(MANUAL_REFRESH_KEY) || '0', 10);
-  var remaining = MANUAL_COOLDOWN_MS - (Date.now() - last);
-  if (remaining > 0) {
-    btn.disabled = true;
-    btn.textContent = '⏳ Cooldown (' + Math.ceil(remaining/60000) + 'm remaining)';
-    setTimeout(updateRefreshBtn, 30000);
-  } else {
-    btn.disabled = false;
-    btn.textContent = '↻ Refresh Data';
-  }
-}
 
-function manualRefresh() {
-  var last = parseInt(localStorage.getItem(MANUAL_REFRESH_KEY) || '0', 10);
-  var remaining = MANUAL_COOLDOWN_MS - (Date.now() - last);
-  if (remaining > 0) { alert('Please wait ' + Math.ceil(remaining/60000) + ' more minute(s) before refreshing again.'); return; }
-  localStorage.setItem(MANUAL_REFRESH_KEY, String(Date.now()));
-  try { localStorage.removeItem(CACHE_KEY); localStorage.removeItem(CACHE_TS_KEY); } catch(e) {}
-  document.getElementById('appContent').innerHTML =
-    '<div class="loading-state"><div class="loading-spinner"></div><div class="loading-text">REFRESHING DATA...</div></div>';
-  fetchEVData();
-}
 
 // Worker URL for Master EV cache — shared across all visitors
 const EV_CACHE_WORKER_URL = 'https://master-ev-cache.tedfarkasstv.workers.dev';
