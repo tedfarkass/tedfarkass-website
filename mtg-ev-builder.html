@@ -321,8 +321,7 @@ async function fetchArticle() {
     }
 
     // Try to extract set name from article
-    var nameMatch = articleText.match(/collecting\s+([A-Z][^
-\.]+)/i);
+    var nameMatch = articleText.match(/collecting\s+([A-Z][^\n.]+)/i);
     if (nameMatch && !document.getElementById('setName').value) {
       document.getElementById('setName').value = nameMatch[1].trim().replace(/\s+/g,' ');
     }
