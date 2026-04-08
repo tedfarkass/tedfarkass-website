@@ -204,7 +204,7 @@ Each Collector Booster contains:
   <!-- EV Play rows -->
   <div class="out-block">
     <div class="out-header">
-      <div class="out-title">🎴 EV_Play Rows <span class="badge badge-g">Paste starting at row 2 — columns A through H</span></div>
+      <div class="out-title">🎴 EV_Play Rows <span class="badge badge-g">Paste starting at C2 — 6 columns (C through H)</span></div>
       <button class="copy-btn" onclick="copyEl('evPlayOut',this)">Copy</button>
     </div>
     <div class="out-content" id="evPlayOut"></div>
@@ -213,7 +213,7 @@ Each Collector Booster contains:
   <!-- EV Play formula -->
   <div class="out-block">
     <div class="out-header">
-      <div class="out-title">📐 EV_Play Formula <span class="badge badge-g">Paste in I2 — drag down</span></div>
+      <div class="out-title">📐 EV_Play Formulas <span class="badge badge-g">Paste in I2 and J2 — drag down</span></div>
     </div>
     <div class="formula-section" id="evPlayFormulas"></div>
   </div>
@@ -487,17 +487,14 @@ function buildPrompt(setName, setCodes, playPacks, collectorPacks, playText, col
 '- Collector packs per box: ' + (collectorPacks || '12') + '\n' +
 '- Less than 1% value: ' + (threshold === 'skip' ? 'SKIP these entirely' : threshold) + '\n\n' +
 
-'COLUMN STRUCTURE FOR EV_Play (cols A-H, tab-separated):\n' +
-'A: Slot Name | B: Count per Pack | C: Avg All (LEAVE BLANK) | D: Count per Pack (repeat of B) | E: Slot EV (LEAVE BLANK) | F: Rarity Code | G: Finish | H: Tag\n\n' +
-'Wait — let me clarify the EXACT column layout Ted uses:\n' +
-'Col A: Slot Name (descriptive)\n' +
-'Col B: Count per Pack (decimal — e.g. 1, 0.333, 0.148)\n' +
-'Col C: Pool (MAIN, EXTRA1, EXTRA2, EXTRA3)\n' +
-'Col D: Count per Pack AGAIN (same as B — used in formula =D*I)\n' +
-'Col E: Avg All — LEAVE BLANK (formula will fill this)\n' +
-'Col F: Rarity Code (C, U, R, M, RM — where RM = rare+mythic mixed)\n' +
-'Col G: Finish (nonfoil or foil)\n' +
-'Col H: Tag (tag name if special, blank if standard pool)\n\n' +
+'EV_PLAY COLUMN LAYOUT — output exactly 6 tab-separated columns per row. User PASTES STARTING AT COLUMN C:\n' +
+'Col C: Slot Name\n' +
+'Col D: Count per Pack (decimal e.g. 1, 0.333, 0.148) — formula uses =D*I so count MUST land in col D\n' +
+'Col E: Pool (MAIN, EXTRA1, EXTRA2, EXTRA3)\n' +
+'Col F: Rarity Code (C, U, R, M, RM) — formula reads $F\n' +
+'Col G: Finish (nonfoil or foil) — formula reads $G\n' +
+'Col H: Tag (tag name if special treatment, blank if standard pool) — formula reads $H\n' +
+'Output EXACTLY 6 tab-separated values per row. NO column headers. NO duplicate count column.\n\n' +
 
 'RARITY CODES:\n' +
 'C = common, U = uncommon, R = rare, M = mythic, RM = rare+mythic mixed pool\n\n' +
@@ -553,7 +550,7 @@ main + '\n' +
 '===END_CONFIG===\n\n' +
 
 '===EV_PLAY===\n' +
-'[one tab-separated row per slot: SlotName\\tCount\\tPool\\tCount\\t\\tRarity\\tFinish\\tTag]\n' +
+'[one tab-separated row per slot: SlotName\\tCount\\tPool\\tRarity\\tFinish\\tTag]\n' +
 '===END_EV_PLAY===\n\n' +
 
 '===COLLECTOR_SLOTS===\n' +
