@@ -7,847 +7,734 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0a0a0f;
-  --bg2: #111118;
-  --bg3: #1a1a24;
-  --bg4: #22222f;
-  --border: rgba(255,255,255,0.08);
-  --border2: rgba(255,255,255,0.15);
-  --accent: #7c3aed;
-  --accent2: #a855f7;
-  --gold: #f59e0b;
-  --green: #10b981;
-  --red: #ef4444;
-  --blue: #3b82f6;
-  --text: #e8e8f0;
-  --muted: #6b6b80;
-  --muted2: #9898aa;
+  --bg:#0a0a0f; --bg2:#111118; --bg3:#1a1a24; --bg4:#22222f;
+  --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.15);
+  --accent:#7c3aed; --accent2:#a855f7; --gold:#f59e0b;
+  --green:#10b981; --red:#ef4444; --blue:#3b82f6; --text:#e8e8f0; --muted:#6b6b80; --muted2:#9898aa;
 }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% 20%,rgba(124,58,237,0.08) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(168,85,247,0.05) 0%,transparent 50%);pointer-events:none;z-index:0;}
+.container{max-width:1100px;margin:0 auto;padding:0 1.5rem;position:relative;z-index:1;}
+header{padding:3rem 0 2rem;border-bottom:1px solid var(--border);margin-bottom:2.5rem;}
+.header-tag{font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--accent2);margin-bottom:0.75rem;display:block;}
+h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;line-height:1.1;margin-bottom:0.5rem;background:linear-gradient(135deg,#fff 0%,var(--accent2) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.header-sub{font-size:0.9rem;color:var(--muted2);font-weight:400;max-width:700px;line-height:1.6;}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.75rem;margin-bottom:1.25rem;}
+.section-label{font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent2);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+.row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1rem;margin-bottom:1rem;}
+@media(max-width:600px){.row2,.row4{grid-template-columns:1fr;}}
+label{display:block;font-size:0.78rem;font-weight:600;color:var(--muted2);margin-bottom:0.4rem;letter-spacing:0.05em;}
+input[type="text"],textarea,select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Space Mono',monospace;font-size:0.82rem;padding:0.75rem 1rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s;resize:vertical;}
+input[type="text"]:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,58,237,0.15);}
+textarea{min-height:180px;line-height:1.6;}
+.hint{font-size:0.7rem;color:var(--muted);margin-top:0.35rem;font-family:'Space Mono',monospace;line-height:1.5;}
+.threshold-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-top:0.75rem;}
+.threshold-title{font-size:0.8rem;font-weight:700;color:var(--gold);margin-bottom:0.5rem;}
+.threshold-opts{display:flex;gap:1rem;flex-wrap:wrap;}
+.threshold-opt{display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.8rem;color:var(--muted2);}
+.threshold-opt input[type="radio"]{width:auto;accent-color:var(--accent2);}
+.build-btn{width:100%;padding:1rem 2rem;background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);border:none;border-radius:10px;color:#fff;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;margin-bottom:1.25rem;position:relative;overflow:hidden;}
+.build-btn:hover{opacity:0.9;}
+.build-btn:disabled{opacity:0.5;cursor:not-allowed;}
+.thinking{display:none;align-items:center;gap:1rem;padding:1.25rem 1.5rem;background:var(--bg2);border:1px solid var(--accent);border-radius:10px;margin-bottom:1.25rem;font-family:'Space Mono',monospace;font-size:0.8rem;color:var(--accent2);}
+.thinking.visible{display:flex;}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent2);margin:0 2px;animation:db 1.2s infinite;}
+.dots span:nth-child(2){animation-delay:0.2s;}
+.dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes db{0%,80%,100%{transform:scale(0.6);opacity:0.4;}40%{transform:scale(1);opacity:1;}}
+.error-msg{padding:1.25rem;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:10px;font-size:0.85rem;color:var(--red);display:none;margin-bottom:1.25rem;}
+.error-msg.visible{display:block;}
+.output-area{display:none;flex-direction:column;gap:1rem;}
+.output-area.visible{display:flex;}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+/* Output blocks */
+.out-block{background:var(--bg2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.out-header{padding:0.9rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+.out-title{font-size:0.85rem;font-weight:700;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}
+.badge{font-family:'Space Mono',monospace;font-size:0.58rem;padding:2px 8px;border-radius:20px;font-weight:400;letter-spacing:0.08em;}
+.badge-g{background:rgba(16,185,129,0.15);color:var(--green);border:1px solid rgba(16,185,129,0.3);}
+.badge-b{background:rgba(59,130,246,0.15);color:var(--blue);border:1px solid rgba(59,130,246,0.3);}
+.badge-p{background:rgba(168,85,247,0.15);color:var(--accent2);border:1px solid rgba(168,85,247,0.3);}
+.badge-y{background:rgba(245,158,11,0.15);color:var(--gold);border:1px solid rgba(245,158,11,0.3);}
+.badge-r{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
+.copy-btn{font-family:'Space Mono',monospace;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.4rem 0.9rem;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;color:var(--muted2);cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.copy-btn:hover{color:var(--text);border-color:var(--accent);}
+.copy-btn.copied{color:var(--green);border-color:var(--green);}
+.out-content{padding:1.25rem;font-family:'Space Mono',monospace;font-size:0.75rem;line-height:1.7;color:var(--text);white-space:pre-wrap;word-break:break-word;max-height:400px;overflow-y:auto;background:var(--bg3);}
+.out-content::-webkit-scrollbar{width:5px;}
+.out-content::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.tag-content,.qst-content{padding:1.25rem;display:flex;flex-direction:column;gap:0.6rem;}
+.tag-item{display:flex;align-items:flex-start;gap:0.75rem;padding:0.6rem 0.9rem;background:var(--bg3);border-radius:8px;border-left:3px solid var(--accent);}
+.tag-name{font-family:'Space Mono',monospace;font-size:0.72rem;color:var(--accent2);white-space:nowrap;min-width:140px;}
+.tag-desc{font-size:0.78rem;color:var(--muted2);line-height:1.5;}
+.qst-item{padding:0.65rem 0.9rem;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:0.8rem;color:var(--gold);line-height:1.5;display:flex;gap:0.5rem;}
+.qst-item::before{content:'?';font-weight:700;flex-shrink:0;}
+.warn-item{padding:0.65rem 0.9rem;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;font-size:0.8rem;color:var(--red);line-height:1.5;display:flex;gap:0.5rem;}
+.warn-item::before{content:'⚠';flex-shrink:0;}
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Syne', sans-serif;
-  min-height: 100vh;
-  overflow-x: hidden;
-}
+/* Formula rows */
+.formula-section{padding:1.25rem;display:flex;flex-direction:column;gap:1rem;}
+.formula-group{background:var(--bg3);border-radius:10px;overflow:hidden;}
+.formula-group-header{padding:0.65rem 1rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;}
+.formula-group-label{font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:0.1em;}
+.formula-code{padding:1rem;font-family:'Space Mono',monospace;font-size:0.72rem;line-height:1.6;color:var(--text);white-space:pre;overflow-x:auto;max-height:200px;overflow-y:auto;}
 
-/* Animated background */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at 20% 20%, rgba(124,58,237,0.08) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(168,85,247,0.05) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
-}
+/* Sanity check */
+.sanity-pass{color:var(--green);}
+.sanity-warn{color:var(--gold);}
+.sanity-fail{color:var(--red);}
 
-.container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-  position: relative;
-  z-index: 1;
-}
-
-/* Header */
-header {
-  padding: 3rem 0 2rem;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 2.5rem;
-}
-
-.header-tag {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--accent2);
-  margin-bottom: 0.75rem;
-  display: block;
-}
-
-h1 {
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
-  font-weight: 800;
-  line-height: 1.1;
-  margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #fff 0%, var(--accent2) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.header-sub {
-  font-size: 0.9rem;
-  color: var(--muted2);
-  font-weight: 400;
-  max-width: 600px;
-  line-height: 1.6;
-}
-
-/* Input section */
-.input-section {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.section-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--accent2);
-  margin-bottom: 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.section-label::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-.input-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-@media(max-width: 600px) { .input-row { grid-template-columns: 1fr; } }
-
-label {
-  display: block;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--muted2);
-  margin-bottom: 0.4rem;
-  letter-spacing: 0.05em;
-}
-
-input[type="text"], textarea, select {
-  width: 100%;
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text);
-  font-family: 'Space Mono', monospace;
-  font-size: 0.82rem;
-  padding: 0.75rem 1rem;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-  resize: vertical;
-}
-
-input[type="text"]:focus, textarea:focus, select:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
-}
-
-textarea {
-  min-height: 200px;
-  line-height: 1.6;
-}
-
-.paste-hint {
-  font-size: 0.72rem;
-  color: var(--muted);
-  margin-top: 0.4rem;
-  font-family: 'Space Mono', monospace;
-}
-
-/* Less than 1% section */
-.threshold-section {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 1.25rem;
-  margin-top: 1rem;
-}
-
-.threshold-title {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--gold);
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.threshold-title::before { content: '⚡'; }
-
-.threshold-options {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.threshold-opt {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  cursor: pointer;
-  font-size: 0.8rem;
-  color: var(--muted2);
-  transition: color 0.2s;
-}
-
-.threshold-opt:hover { color: var(--text); }
-
-.threshold-opt input[type="radio"] {
-  width: auto;
-  accent-color: var(--accent2);
-}
-
-/* Build button */
-.build-btn {
-  width: 100%;
-  padding: 1rem 2rem;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
-  border: none;
-  border-radius: 10px;
-  color: #fff;
-  font-family: 'Syne', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  transition: all 0.2s;
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 1.5rem;
-}
-
-.build-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(255,255,255,0.1);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.build-btn:hover::before { opacity: 1; }
-.build-btn:active { transform: scale(0.99); }
-.build-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-.build-btn .btn-icon { margin-right: 0.5rem; }
-
-/* Status/thinking indicator */
-.thinking {
-  display: none;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.25rem 1.5rem;
-  background: var(--bg2);
-  border: 1px solid var(--accent);
-  border-radius: 10px;
-  margin-bottom: 1.5rem;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.8rem;
-  color: var(--accent2);
-}
-
-.thinking.visible { display: flex; }
-
-.thinking-dots span {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent2);
-  margin: 0 2px;
-  animation: dot-bounce 1.2s infinite;
-}
-
-.thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
-.thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes dot-bounce {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-  40% { transform: scale(1); opacity: 1; }
-}
-
-/* Output sections */
-.output-area {
-  display: none;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.output-area.visible { display: flex; }
-
-.output-block {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.output-header {
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.output-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.output-title .badge {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.6rem;
-  padding: 2px 8px;
-  border-radius: 20px;
-  font-weight: 400;
-  letter-spacing: 0.1em;
-}
-
-.badge-green { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
-.badge-blue  { background: rgba(59,130,246,0.15); color: var(--blue);  border: 1px solid rgba(59,130,246,0.3); }
-.badge-gold  { background: rgba(245,158,11,0.15); color: var(--gold);  border: 1px solid rgba(245,158,11,0.3); }
-.badge-purple{ background: rgba(168,85,247,0.15); color: var(--accent2); border: 1px solid rgba(168,85,247,0.3); }
-
-.copy-btn {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.65rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 0.4rem 0.9rem;
-  background: var(--bg3);
-  border: 1px solid var(--border2);
-  border-radius: 6px;
-  color: var(--muted2);
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.copy-btn:hover { color: var(--text); border-color: var(--accent); }
-.copy-btn.copied { color: var(--green); border-color: var(--green); }
-
-.output-content {
-  padding: 1.25rem;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.75rem;
-  line-height: 1.7;
-  color: var(--text);
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-height: 400px;
-  overflow-y: auto;
-  background: var(--bg3);
-}
-
-.output-content::-webkit-scrollbar { width: 6px; }
-.output-content::-webkit-scrollbar-track { background: var(--bg3); }
-.output-content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-
-/* Tag list special styling */
-.tag-content {
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.tag-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: var(--bg3);
-  border-radius: 8px;
-  border-left: 3px solid var(--accent);
-}
-
-.tag-name {
-  font-family: 'Space Mono', monospace;
-  font-size: 0.75rem;
-  color: var(--accent2);
-  white-space: nowrap;
-  min-width: 140px;
-}
-
-.tag-desc {
-  font-size: 0.8rem;
-  color: var(--muted2);
-  line-height: 1.5;
-}
-
-/* Questions section */
-.questions-content {
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.question-item {
-  padding: 0.75rem 1rem;
-  background: rgba(245,158,11,0.06);
-  border: 1px solid rgba(245,158,11,0.2);
-  border-radius: 8px;
-  font-size: 0.82rem;
-  color: var(--gold);
-  line-height: 1.5;
-  display: flex;
-  gap: 0.75rem;
-  align-items: flex-start;
-}
-
-.question-item::before { content: '?'; font-weight: 700; flex-shrink: 0; }
-
-/* Error */
-.error-msg {
-  padding: 1.25rem;
-  background: rgba(239,68,68,0.06);
-  border: 1px solid rgba(239,68,68,0.2);
-  border-radius: 10px;
-  font-size: 0.85rem;
-  color: var(--red);
-  display: none;
-  margin-bottom: 1.5rem;
-}
-
-.error-msg.visible { display: block; }
-
-/* Footer */
-footer {
-  margin-top: 4rem;
-  padding: 2rem 0;
-  border-top: 1px solid var(--border);
-  text-align: center;
-  font-family: 'Space Mono', monospace;
-  font-size: 0.65rem;
-  color: var(--muted);
-  letter-spacing: 0.1em;
-}
+footer{margin-top:4rem;padding:2rem 0;border-top:1px solid var(--border);text-align:center;font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.1em;}
 </style>
 </head>
 <body>
 <div class="container">
-  <header>
-    <span class="header-tag">TedFarkass Tools · MTG EV System</span>
-    <h1>EV Template Builder</h1>
-    <p class="header-sub">Paste the Wizards "Collecting [Set Name]" booster contents and get ready-to-paste rows for EV_Play, Collector_Slots, and Variant_Tagging tag guidance.</p>
-  </header>
+<header>
+  <span class="header-tag">TedFarkass Tools · MTG EV System</span>
+  <h1>EV Template Builder</h1>
+  <p class="header-sub">Paste the Wizards "Collecting [Set Name]" booster contents and get ready-to-paste rows for EV_Play and Collector_Slots, plus verified formulas and tag guidance. Works for any MTG set.</p>
+</header>
 
-  <!-- Input -->
-  <div class="input-section">
-    <div class="section-label">Set Info</div>
-    <div class="input-row">
-      <div>
-        <label>Set Name</label>
-        <input type="text" id="setName" placeholder="e.g. Final Fantasy"/>
-      </div>
-      <div>
-        <label>Set Codes (comma separated)</label>
-        <input type="text" id="setCodes" placeholder="e.g. FIN, FCA, FIC"/>
-      </div>
+<!-- SET INFO -->
+<div class="card">
+  <div class="section-label">Set Info</div>
+  <div class="row2">
+    <div>
+      <label>Set Name</label>
+      <input type="text" id="setName" placeholder="e.g. Final Fantasy"/>
     </div>
-    <div class="input-row">
-      <div>
-        <label>Packs per Play Box</label>
-        <input type="text" id="playPacks" placeholder="e.g. 30"/>
-      </div>
-      <div>
-        <label>Packs per Collector Box</label>
-        <input type="text" id="collectorPacks" placeholder="e.g. 12"/>
-      </div>
+    <div>
+      <label>Set Codes (comma separated — MAIN first)</label>
+      <input type="text" id="setCodes" placeholder="e.g. FIN, FCA, FIC"/>
+      <p class="hint">// MAIN = first code. EXTRA1, EXTRA2, EXTRA3 follow in order.</p>
     </div>
   </div>
-
-  <div class="input-section">
-    <div class="section-label">Play Booster Contents</div>
-    <textarea id="playBoosterText" placeholder="Paste the Play Booster section from the Wizards article here...
-
-Example:
-Each Play Booster contains the following:
-• 7 Commons
-  - There are 56 commons from the main set...
-  - There is 1 scene card (4.2%)
-• 2 Uncommons
-..."></textarea>
-    <p class="paste-hint">// Paste directly from the Wizards collecting article — the full bullet point breakdown</p>
+  <div class="row2">
+    <div>
+      <label>Packs per Play Box</label>
+      <input type="text" id="playPacks" placeholder="e.g. 30"/>
+    </div>
+    <div>
+      <label>Packs per Collector Box</label>
+      <input type="text" id="collectorPacks" placeholder="e.g. 12"/>
+    </div>
   </div>
+</div>
 
-  <div class="input-section">
-    <div class="section-label">Collector Booster Contents</div>
-    <textarea id="collectorBoosterText" placeholder="Paste the Collector Booster section from the Wizards article here...
+<!-- PLAY BOOSTER -->
+<div class="card">
+  <div class="section-label">Play Booster Contents</div>
+  <textarea id="playText" placeholder="Paste the Play Booster section from the Wizards Collecting article here...
 
 Example:
-Each Collector Booster contains the following:
+Each Play Booster contains:
+• 6 Commons (from main set)
+• 3 Uncommons
+• 1 Rare or mythic rare (7:1 ratio)
+  - There is a 1/8 chance this is a mythic rare
+• 1 Land (basic or dual)
+• 1 Wildcard (any rarity)
+• 1 Traditional foil of any rarity (from any set in the booster)
+• In less than 1% of boosters, one card is replaced with a special card..."></textarea>
+  <p class="hint">// Copy directly from the Wizards collecting article — include all bullet points, percentages, and replacement clauses</p>
+</div>
+
+<!-- COLLECTOR BOOSTER -->
+<div class="card">
+  <div class="section-label">Collector Booster Contents</div>
+  <textarea id="collectorText" placeholder="Paste the Collector Booster section from the Wizards Collecting article here...
+
+Example:
+Each Collector Booster contains:
 • 5 Traditional foil commons
-  - There are 61 commons (88.4%)...
 • 3 Traditional foil uncommons
+• 1 of 5 Traditional foil Artist Series rares (20% each)
+• 1 Traditional foil rare or mythic rare
+  - 7:1 ratio
+• 1 Extended art rare or mythic rare (nonfoil)
 ..."></textarea>
-    <p class="paste-hint">// Paste directly from the Wizards collecting article — the full bullet point breakdown</p>
-  </div>
+  <p class="hint">// Include all slot groups, percentages, foil treatments (surge foil, fracture foil, etc.), and any serialized card info</p>
+</div>
 
-  <div class="input-section">
-    <div class="section-label">Less Than 1% Handling</div>
-    <div class="threshold-section">
-      <div class="threshold-title">How should "less than 1%" rates be handled?</div>
-      <div class="threshold-options">
-        <label class="threshold-opt">
-          <input type="radio" name="threshold" value="0.005" checked> 0.005 (standard)
-        </label>
-        <label class="threshold-opt">
-          <input type="radio" name="threshold" value="0.003"> 0.003 (conservative)
-        </label>
-        <label class="threshold-opt">
-          <input type="radio" name="threshold" value="0.01"> 0.01 (generous)
-        </label>
-        <label class="threshold-opt">
-          <input type="radio" name="threshold" value="skip"> Skip entirely
-        </label>
-      </div>
+<!-- OPTIONS -->
+<div class="card">
+  <div class="section-label">Options</div>
+  <div class="threshold-box">
+    <div class="threshold-title">⚡ How should "less than 1%" rates be handled?</div>
+    <div class="threshold-opts">
+      <label class="threshold-opt"><input type="radio" name="threshold" value="0.005" checked> 0.005 (standard)</label>
+      <label class="threshold-opt"><input type="radio" name="threshold" value="0.003"> 0.003 (conservative)</label>
+      <label class="threshold-opt"><input type="radio" name="threshold" value="0.01"> 0.01 (generous)</label>
+      <label class="threshold-opt"><input type="radio" name="threshold" value="skip"> Skip entirely</label>
     </div>
   </div>
+</div>
 
-  <button class="build-btn" id="buildBtn" onclick="buildTemplate()">
-    <span class="btn-icon">⚡</span> Build EV Template Rows
-  </button>
+<button class="build-btn" id="buildBtn" onclick="buildTemplate()">⚡ Build EV Template</button>
 
-  <!-- Thinking indicator -->
-  <div class="thinking" id="thinking">
-    <div class="thinking-dots"><span></span><span></span><span></span></div>
-    <span id="thinkingText">Reading booster contents and calculating slot math...</span>
+<div class="thinking" id="thinking">
+  <div class="dots"><span></span><span></span><span></span></div>
+  <span id="thinkingText">Reading booster contents and calculating slot math...</span>
+</div>
+<div class="error-msg" id="errorMsg"></div>
+
+<!-- OUTPUT -->
+<div class="output-area" id="outputArea">
+
+  <!-- Config -->
+  <div class="out-block">
+    <div class="out-header">
+      <div class="out-title">⚙️ Config Sheet <span class="badge badge-p">Paste into B1:B4</span></div>
+      <button class="copy-btn" onclick="copyEl('configOut',this)">Copy</button>
+    </div>
+    <div class="out-content" id="configOut"></div>
   </div>
 
-  <!-- Error -->
-  <div class="error-msg" id="errorMsg"></div>
-
-  <!-- Output -->
-  <div class="output-area" id="outputArea">
-
-    <!-- Config -->
-    <div class="output-block">
-      <div class="output-header">
-        <div class="output-title">⚙️ Config Sheet <span class="badge badge-purple">B1:B4</span></div>
-        <button class="copy-btn" onclick="copyOutput('configOutput', this)">Copy</button>
-      </div>
-      <div class="output-content" id="configOutput"></div>
+  <!-- Sanity / Warnings -->
+  <div class="out-block" id="sanityBlock" style="display:none">
+    <div class="out-header">
+      <div class="out-title">🔍 Sanity Checks <span class="badge badge-y">Review Before Pasting</span></div>
     </div>
-
-    <!-- Questions -->
-    <div class="output-block" id="questionsBlock" style="display:none">
-      <div class="output-header">
-        <div class="output-title">⚡ Flagged Questions <span class="badge badge-gold">Review Before Pasting</span></div>
-      </div>
-      <div class="questions-content" id="questionsOutput"></div>
-    </div>
-
-    <!-- EV Play -->
-    <div class="output-block">
-      <div class="output-header">
-        <div class="output-title">🎴 EV_Play Rows <span class="badge badge-green">Paste into EV_Play sheet</span></div>
-        <button class="copy-btn" onclick="copyOutput('evPlayOutput', this)">Copy</button>
-      </div>
-      <div class="output-content" id="evPlayOutput"></div>
-    </div>
-
-    <!-- Collector Slots -->
-    <div class="output-block">
-      <div class="output-header">
-        <div class="output-title">💎 Collector_Slots Rows <span class="badge badge-blue">Paste into Collector_Slots sheet</span></div>
-        <button class="copy-btn" onclick="copyOutput('collectorOutput', this)">Copy</button>
-      </div>
-      <div class="output-content" id="collectorOutput"></div>
-    </div>
-
-    <!-- Tags -->
-    <div class="output-block">
-      <div class="output-header">
-        <div class="output-title">🏷️ Variant_Tagging Guide <span class="badge badge-purple">Tag Reference</span></div>
-        <button class="copy-btn" onclick="copyTagsAsText(this)">Copy as Text</button>
-      </div>
-      <div class="tag-content" id="tagsOutput"></div>
-    </div>
-
+    <div class="qst-content" id="sanityOut"></div>
   </div>
 
-  <footer>TedFarkass MTG Tools · EV Template Builder · Powered by Claude</footer>
+  <!-- EV Play rows -->
+  <div class="out-block">
+    <div class="out-header">
+      <div class="out-title">🎴 EV_Play Rows <span class="badge badge-g">Paste starting at row 2 — columns A through H</span></div>
+      <button class="copy-btn" onclick="copyEl('evPlayOut',this)">Copy</button>
+    </div>
+    <div class="out-content" id="evPlayOut"></div>
+  </div>
+
+  <!-- EV Play formula -->
+  <div class="out-block">
+    <div class="out-header">
+      <div class="out-title">📐 EV_Play Formula <span class="badge badge-g">Paste in I2 — drag down</span></div>
+    </div>
+    <div class="formula-section" id="evPlayFormulas"></div>
+  </div>
+
+  <!-- Collector Slots rows -->
+  <div class="out-block">
+    <div class="out-header">
+      <div class="out-title">💎 Collector_Slots Rows <span class="badge badge-b">Paste starting at row 2 — columns A through F</span></div>
+      <button class="copy-btn" onclick="copyEl('colSlotsOut',this)">Copy</button>
+    </div>
+    <div class="out-content" id="colSlotsOut"></div>
+  </div>
+
+  <!-- Collector formulas -->
+  <div class="out-block">
+    <div class="out-header">
+      <div class="out-title">📐 Collector_Slots Formulas <span class="badge badge-b">Paste in G2/H2/I2/J2 — drag down</span></div>
+    </div>
+    <div class="formula-section" id="colSlotFormulas"></div>
+  </div>
+
+  <!-- Tags -->
+  <div class="out-block">
+    <div class="out-header">
+      <div class="out-title">🏷️ Variant_Tagging Guide <span class="badge badge-p">Which cards get which tags</span></div>
+      <button class="copy-btn" onclick="copyTagsText(this)">Copy as Text</button>
+    </div>
+    <div class="tag-content" id="tagsOut"></div>
+  </div>
+
+  <!-- Questions -->
+  <div class="out-block" id="questBlock" style="display:none">
+    <div class="out-header">
+      <div class="out-title">❓ Flagged Questions <span class="badge badge-r">Needs Your Input</span></div>
+    </div>
+    <div class="qst-content" id="questOut"></div>
+  </div>
+
+</div>
+
+<footer>TedFarkass MTG Tools · EV Template Builder v2 · Powered by Claude</footer>
 </div>
 
 <script>
+// ── Helpers ─────────────────────────────────────────────────────────────────
+function copyEl(id, btn) {
+  var text = document.getElementById(id).textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = '✓ Copied!'; btn.classList.add('copied');
+    setTimeout(function(){ btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(function() {
+    btn.textContent = '✓ Copied!'; btn.classList.add('copied');
+    setTimeout(function(){ btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+function copyTagsText(btn) {
+  var items = document.querySelectorAll('#tagsOut .tag-item');
+  var lines = Array.from(items).map(function(item) {
+    return item.querySelector('.tag-name').textContent + ': ' + item.querySelector('.tag-desc').textContent;
+  }).join('\n');
+  copyText(lines, btn);
+}
+function setThinking(show, msg) {
+  var el = document.getElementById('thinking');
+  var btn = document.getElementById('buildBtn');
+  if (show) {
+    el.classList.add('visible');
+    document.getElementById('thinkingText').textContent = msg || 'Thinking...';
+    btn.disabled = true; btn.textContent = '⏳ Building...';
+  } else {
+    el.classList.remove('visible');
+    btn.disabled = false; btn.innerHTML = '⚡ Build EV Template';
+  }
+}
+function showError(msg) {
+  var el = document.getElementById('errorMsg');
+  el.textContent = msg; el.classList.add('visible');
+}
+function hideError() { document.getElementById('errorMsg').classList.remove('visible'); }
+
+// ── Formula builder (deterministic, no API needed) ───────────────────────────
+function buildEVPlayFormula(setCodes) {
+  var codes = setCodes.split(',').map(function(s){ return s.trim().toLowerCase(); }).filter(Boolean);
+  var pattern = codes.join('|');
+  var evPlayExclude = 'dual_land|rooftop_basic|pizza_basic|scene|sewer|silhouette|extended_art|japan_showcase|headliner|tmc_borderless|tmc_new|tmc_reprint|pixel|source';
+
+  return '=IFERROR(\n' +
+'  AVERAGE(\n' +
+'    FILTER(\n' +
+'      IF(LOWER(TRIM($G2))="foil",\n' +
+'        IF(Variant_Tagging!R:R>0, Variant_Tagging!R:R, Variant_Tagging!Q:Q),\n' +
+'        Variant_Tagging!Q:Q\n' +
+'      ),\n' +
+'      Variant_Tagging!M:M=TRUE,\n' +
+'      REGEXMATCH(LOWER(Variant_Tagging!B:B),"' + pattern + '"),\n' +
+'      IF(UPPER(TRIM($F2))="C", LOWER(Variant_Tagging!D:D)="common",\n' +
+'        IF(UPPER(TRIM($F2))="U", LOWER(Variant_Tagging!D:D)="uncommon",\n' +
+'          IF(UPPER(TRIM($F2))="R", LOWER(Variant_Tagging!D:D)="rare",\n' +
+'            IF(UPPER(TRIM($F2))="M", REGEXMATCH(LOWER(Variant_Tagging!D:D),"mythic"),\n' +
+'              REGEXMATCH(LOWER(Variant_Tagging!D:D),"rare|mythic")\n' +
+'            )\n' +
+'          )\n' +
+'        )\n' +
+'      ),\n' +
+'      IF(TRIM($H2)="",\n' +
+'        NOT(REGEXMATCH(LOWER(Variant_Tagging!U:U),"' + evPlayExclude + '")),\n' +
+'        REGEXMATCH(LOWER(Variant_Tagging!U:U), LOWER(TRIM($H2)))\n' +
+'      )\n' +
+'    )\n' +
+'  ),\n' +
+'0)';
+}
+
+function buildColSwitchBlock(setCodes) {
+  var codes = setCodes.split(',').map(function(s){ return s.trim().toUpperCase(); }).filter(Boolean);
+  var main   = codes[0] || '';
+  var extra1 = codes[1] || '';
+  var extra2 = codes[2] || '';
+  var extra3 = codes[3] || '';
+  return '        SWITCH(UPPER(TRIM($C2)),\n' +
+'          "MAIN","' + main + '",\n' +
+'          "EXTRA1","' + extra1 + '",\n' +
+'          "EXTRA2","' + extra2 + '",\n' +
+'          "EXTRA3","' + extra3 + '"\n' +
+'        )';
+}
+
+function buildColSlotFormulaG(setCodes) {
+  var sw = buildColSwitchBlock(setCodes);
+  var exclude = 'scene|sewer|source|silhouette|dual_land|pizza_basic|rooftop_basic|extended_art|tmc_reprint|tmc_new|tmc_borderless|pixel|japan_showcase|headliner';
+  return '=IFERROR(\n' +
+'  AVERAGE(\n' +
+'    FILTER(\n' +
+'      IF(LOWER(TRIM($E2))="nonfoil", Variant_Tagging!Q:Q,\n' +
+'        IF(LOWER(TRIM($E2))="foil",\n' +
+'          IF(Variant_Tagging!R:R>0, Variant_Tagging!R:R, Variant_Tagging!Q:Q),\n' +
+'          IF(LOWER(TRIM($E2))="surge",\n' +
+'            IF(Variant_Tagging!R:R>0, Variant_Tagging!R:R, Variant_Tagging!Q:Q),\n' +
+'            IF(LOWER(TRIM($E2))="fracture",\n' +
+'              IF(Variant_Tagging!S:S>0, Variant_Tagging!S:S,\n' +
+'                IF(Variant_Tagging!R:R>0, Variant_Tagging!R:R, Variant_Tagging!Q:Q)\n' +
+'              ),\n' +
+'              Variant_Tagging!Q:Q\n' +
+'            )\n' +
+'          )\n' +
+'        )\n' +
+'      ),\n' +
+'      LOWER(Variant_Tagging!B:B)=LOWER(\n' +
+sw + '\n' +
+'      ),\n' +
+'      IF(UPPER(TRIM($D2))="C", LOWER(Variant_Tagging!D:D)="common",\n' +
+'        IF(UPPER(TRIM($D2))="U", LOWER(Variant_Tagging!D:D)="uncommon",\n' +
+'          IF(UPPER(TRIM($D2))="R", LOWER(Variant_Tagging!D:D)="rare",\n' +
+'            IF(UPPER(TRIM($D2))="M", REGEXMATCH(LOWER(Variant_Tagging!D:D),"mythic"),\n' +
+'              REGEXMATCH(LOWER(Variant_Tagging!D:D),"rare|mythic")\n' +
+'            )\n' +
+'          )\n' +
+'        )\n' +
+'      ),\n' +
+'      IF(LOWER(TRIM($E2))="nonfoil",\n' +
+'        NOT(REGEXMATCH(LOWER(Variant_Tagging!I:I),"surgefoil|fracturefoil")),\n' +
+'        IF(LOWER(TRIM($E2))="foil",\n' +
+'          NOT(REGEXMATCH(LOWER(Variant_Tagging!I:I),"surgefoil|fracturefoil")),\n' +
+'          IF(LOWER(TRIM($E2))="surge",\n' +
+'            REGEXMATCH(LOWER(Variant_Tagging!I:I),"surgefoil"),\n' +
+'            IF(LOWER(TRIM($E2))="fracture",\n' +
+'              REGEXMATCH(LOWER(Variant_Tagging!I:I),"fracturefoil"),\n' +
+'              TRUE\n' +
+'            )\n' +
+'          )\n' +
+'        )\n' +
+'      ),\n' +
+'      IF(TRIM($F2)="",\n' +
+'        NOT(REGEXMATCH(LOWER(Variant_Tagging!U:U),"' + exclude + '")),\n' +
+'        REGEXMATCH(LOWER(Variant_Tagging!U:U),LOWER(TRIM($F2)))\n' +
+'      )\n' +
+'    )\n' +
+'  ),\n' +
+'0)';
+}
+
+function buildColSlotFormulaI(setCodes) {
+  // Same as G but adds Variant_Tagging!T:T<>TRUE
+  var sw = buildColSwitchBlock(setCodes);
+  var exclude = 'scene|sewer|source|silhouette|dual_land|pizza_basic|rooftop_basic|extended_art|tmc_reprint|tmc_new|tmc_borderless|pixel|japan_showcase|headliner';
+  return '=IFERROR(\n' +
+'  AVERAGE(\n' +
+'    FILTER(\n' +
+'      IF(LOWER(TRIM($E2))="nonfoil", Variant_Tagging!Q:Q,\n' +
+'        IF(LOWER(TRIM($E2))="foil",\n' +
+'          IF(Variant_Tagging!R:R>0, Variant_Tagging!R:R, Variant_Tagging!Q:Q),\n' +
+'          IF(LOWER(TRIM($E2))="surge",\n' +
+'            IF(Variant_Tagging!R:R>0, Variant_Tagging!R:R, Variant_Tagging!Q:Q),\n' +
+'            IF(LOWER(TRIM($E2))="fracture",\n' +
+'              IF(Variant_Tagging!S:S>0, Variant_Tagging!S:S,\n' +
+'                IF(Variant_Tagging!R:R>0, Variant_Tagging!R:R, Variant_Tagging!Q:Q)\n' +
+'              ),\n' +
+'              Variant_Tagging!Q:Q\n' +
+'            )\n' +
+'          )\n' +
+'        )\n' +
+'      ),\n' +
+'      LOWER(Variant_Tagging!B:B)=LOWER(\n' +
+sw + '\n' +
+'      ),\n' +
+'      IF(UPPER(TRIM($D2))="C", LOWER(Variant_Tagging!D:D)="common",\n' +
+'        IF(UPPER(TRIM($D2))="U", LOWER(Variant_Tagging!D:D)="uncommon",\n' +
+'          IF(UPPER(TRIM($D2))="R", LOWER(Variant_Tagging!D:D)="rare",\n' +
+'            IF(UPPER(TRIM($D2))="M", REGEXMATCH(LOWER(Variant_Tagging!D:D),"mythic"),\n' +
+'              REGEXMATCH(LOWER(Variant_Tagging!D:D),"rare|mythic")\n' +
+'            )\n' +
+'          )\n' +
+'        )\n' +
+'      ),\n' +
+'      IF(LOWER(TRIM($E2))="nonfoil",\n' +
+'        NOT(REGEXMATCH(LOWER(Variant_Tagging!I:I),"surgefoil|fracturefoil")),\n' +
+'        IF(LOWER(TRIM($E2))="foil",\n' +
+'          NOT(REGEXMATCH(LOWER(Variant_Tagging!I:I),"surgefoil|fracturefoil")),\n' +
+'          IF(LOWER(TRIM($E2))="surge",\n' +
+'            REGEXMATCH(LOWER(Variant_Tagging!I:I),"surgefoil"),\n' +
+'            IF(LOWER(TRIM($E2))="fracture",\n' +
+'              REGEXMATCH(LOWER(Variant_Tagging!I:I),"fracturefoil"),\n' +
+'              TRUE\n' +
+'            )\n' +
+'          )\n' +
+'        )\n' +
+'      ),\n' +
+'      IF(TRIM($F2)="",\n' +
+'        NOT(REGEXMATCH(LOWER(Variant_Tagging!U:U),"' + exclude + '")),\n' +
+'        REGEXMATCH(LOWER(Variant_Tagging!U:U),LOWER(TRIM($F2)))\n' +
+'      ),\n' +
+'      Variant_Tagging!T:T<>TRUE\n' +
+'    )\n' +
+'  ),\n' +
+'0)';
+}
+
+function addFormulaGroup(container, label, formula, badge) {
+  var g = document.createElement('div');
+  g.className = 'formula-group';
+  var btn = document.createElement('button');
+  btn.className = 'copy-btn';
+  btn.textContent = 'Copy';
+  btn.onclick = function(){ copyText(formula, btn); };
+  g.innerHTML = '<div class="formula-group-header"><span class="formula-group-label">' + label + '</span></div><pre class="formula-code"></pre>';
+  g.querySelector('.formula-code').textContent = formula;
+  g.querySelector('.formula-group-header').appendChild(btn);
+  container.appendChild(g);
+}
+
+// ── Build prompt ─────────────────────────────────────────────────────────────
+function buildPrompt(setName, setCodes, playPacks, collectorPacks, playText, collectorText, threshold) {
+  var codes = setCodes.split(',').map(function(s){ return s.trim().toUpperCase(); }).filter(Boolean);
+  var main = codes[0] || 'MAIN_CODE';
+  var extra1 = codes[1] || '';
+  var extra2 = codes[2] || '';
+  var extra3 = codes[3] || '';
+
+  return 'You are an MTG EV sheet builder for TedFarkass. Your job is to read Wizards of the Coast booster contents and output structured slot data for Google Sheets EV templates.\n\n' +
+
+'SET INFO:\n' +
+'- Set Name: ' + (setName || 'Unknown') + '\n' +
+'- MAIN set code: ' + main + '\n' +
+'- EXTRA1 set code: ' + (extra1 || 'none') + '\n' +
+'- EXTRA2 set code: ' + (extra2 || 'none') + '\n' +
+'- EXTRA3 set code: ' + (extra3 || 'none') + '\n' +
+'- Play packs per box: ' + (playPacks || '30') + '\n' +
+'- Collector packs per box: ' + (collectorPacks || '12') + '\n' +
+'- Less than 1% value: ' + (threshold === 'skip' ? 'SKIP these entirely' : threshold) + '\n\n' +
+
+'COLUMN STRUCTURE FOR EV_Play (cols A-H, tab-separated):\n' +
+'A: Slot Name | B: Count per Pack | C: Avg All (LEAVE BLANK) | D: Count per Pack (repeat of B) | E: Slot EV (LEAVE BLANK) | F: Rarity Code | G: Finish | H: Tag\n\n' +
+'Wait — let me clarify the EXACT column layout Ted uses:\n' +
+'Col A: Slot Name (descriptive)\n' +
+'Col B: Count per Pack (decimal — e.g. 1, 0.333, 0.148)\n' +
+'Col C: Pool (MAIN, EXTRA1, EXTRA2, EXTRA3)\n' +
+'Col D: Count per Pack AGAIN (same as B — used in formula =D*I)\n' +
+'Col E: Avg All — LEAVE BLANK (formula will fill this)\n' +
+'Col F: Rarity Code (C, U, R, M, RM — where RM = rare+mythic mixed)\n' +
+'Col G: Finish (nonfoil or foil)\n' +
+'Col H: Tag (tag name if special, blank if standard pool)\n\n' +
+
+'RARITY CODES:\n' +
+'C = common, U = uncommon, R = rare, M = mythic, RM = rare+mythic mixed pool\n\n' +
+
+'FINISH OPTIONS for EV_Play: nonfoil or foil\n\n' +
+
+'TAG RULES:\n' +
+'- Standard base set cards get NO tag (leave H blank)\n' +
+'- Special treatments get a tag: scene, extended_art, borderless, dual_land, basic_land, bonus_sheet, etc.\n' +
+'- Only tag cards that are distinguished from standard frame by their treatment\n\n' +
+
+'COLUMN STRUCTURE FOR Collector_Slots (cols A-F, tab-separated):\n' +
+'Col A: Slot Name\n' +
+'Col B: Count per Pack\n' +
+'Col C: Pool (MAIN, EXTRA1, EXTRA2, EXTRA3)\n' +
+'Col D: Rarity Code (C, U, R, M, RM)\n' +
+'Col E: Finish Type (nonfoil, foil, surge, fracture)\n' +
+'Col F: Tag (tag name if special, blank if standard)\n' +
+'Cols G-J: LEAVE BLANK (formulas will fill)\n\n' +
+
+'FINISH OPTIONS for Collector_Slots:\n' +
+'nonfoil = standard nonfoil\n' +
+'foil = traditional foil\n' +
+'surge = surge foil (special treatment)\n' +
+'fracture = fracture foil (special treatment)\n\n' +
+
+'MATH RULES:\n' +
+'1. Count per Pack must be a decimal. If a slot has a 30% chance, Count = 0.30\n' +
+'2. For a slot guaranteed 1 card, Count = 1\n' +
+'3. For "1 of 3 rare or mythic" with 80% rare / 20% mythic: make TWO rows — R=0.80×(1/3), M=0.20×(1/3) \n' +
+'   OR use RM with Count = 1/3 if the mix doesnt matter\n' +
+'4. Sub-rows within a slot group should sum to the slot\'s total count\n' +
+'5. Verify your math explicitly — state the calculation in your reasoning\n\n' +
+
+(playText ? 'PLAY BOOSTER CONTENTS:\n' + playText + '\n\n' : '') +
+(collectorText ? 'COLLECTOR BOOSTER CONTENTS:\n' + collectorText + '\n\n' : '') +
+
+'CRITICAL INSTRUCTIONS:\n' +
+'1. Think through EACH slot step by step before outputting\n' +
+'2. For each slot, identify: what cards can appear? what pool? what rarity? what finish? any special tag?\n' +
+'3. Output ONLY the labeled sections below — no extra prose\n' +
+'4. Tab-separate all columns\n' +
+'5. Do NOT include column headers in the data rows\n' +
+'6. Leave the Avg All / EV columns completely blank (just tabs)\n\n' +
+
+'OUTPUT FORMAT — use EXACTLY these section markers:\n\n' +
+
+'===CONFIG===\n' +
+main + '\n' +
+(extra1 || '') + '\n' +
+(extra2 || '') + '\n' +
+(extra3 || '') + '\n' +
+'===END_CONFIG===\n\n' +
+
+'===EV_PLAY===\n' +
+'[one tab-separated row per slot: SlotName\\tCount\\tPool\\tCount\\t\\tRarity\\tFinish\\tTag]\n' +
+'===END_EV_PLAY===\n\n' +
+
+'===COLLECTOR_SLOTS===\n' +
+'[one tab-separated row per slot: SlotName\\tCount\\tPool\\tRarity\\tFinish\\tTag]\n' +
+'===END_COLLECTOR_SLOTS===\n\n' +
+
+'===TAGS===\n' +
+'[tag_name]: Which cards get this tag and why. One per line.\n' +
+'===END_TAGS===\n\n' +
+
+'===SANITY===\n' +
+'[List any math checks, probability sums, or concerns. Format: PASS: message OR WARN: message OR FLAG: message]\n' +
+'===END_SANITY===\n\n' +
+
+'===QUESTIONS===\n' +
+'[Anything ambiguous needing Ted\'s input. NONE if nothing.]\n' +
+'===END_QUESTIONS===';
+}
+
+// ── Main build function ───────────────────────────────────────────────────────
 async function buildTemplate() {
-  const setName = document.getElementById('setName').value.trim();
-  const setCodes = document.getElementById('setCodes').value.trim();
-  const playPacks = document.getElementById('playPacks').value.trim();
-  const collectorPacks = document.getElementById('collectorPacks').value.trim();
-  const playText = document.getElementById('playBoosterText').value.trim();
-  const collectorText = document.getElementById('collectorBoosterText').value.trim();
-  const threshold = document.querySelector('input[name="threshold"]:checked').value;
+  var setName       = document.getElementById('setName').value.trim();
+  var setCodes      = document.getElementById('setCodes').value.trim();
+  var playPacks     = document.getElementById('playPacks').value.trim();
+  var collectorPacks= document.getElementById('collectorPacks').value.trim();
+  var playText      = document.getElementById('playText').value.trim();
+  var collectorText = document.getElementById('collectorText').value.trim();
+  var threshold     = document.querySelector('input[name="threshold"]:checked').value;
 
   if (!playText && !collectorText) {
-    showError('Please paste at least the Play Booster or Collector Booster contents from the Wizards article.');
+    showError('Please paste at least one booster contents section.');
+    return;
+  }
+  if (!setCodes) {
+    showError('Please enter set codes (e.g. FIN, FCA, FIC).');
     return;
   }
 
-  setThinking(true, 'Reading booster contents and calculating slot math...');
+  setThinking(true, 'Reading booster contents and classifying slots...');
   hideError();
-  hideOutput();
+  document.getElementById('outputArea').classList.remove('visible');
 
-  const prompt = buildPrompt(setName, setCodes, playPacks, collectorPacks, playText, collectorText, threshold);
+  var prompt = buildPrompt(setName, setCodes, playPacks, collectorPacks, playText, collectorText, threshold);
 
   try {
-    console.log('Sending request to Worker...');
-    const response = await fetch('https://mtg-ev-builder.tedfarkasstv.workers.dev', {
+    var res = await fetch('https://mtg-ev-builder.tedfarkasstv.workers.dev', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [{ role: 'user', content: prompt }]
-      })
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] })
     });
 
-    console.log('Response status:', response.status);
-    const rawText = await response.text();
-    console.log('Raw response:', rawText.substring(0, 500));
+    var raw = await res.text();
+    var data;
+    try { data = JSON.parse(raw); } catch(e) { throw new Error('Invalid response from Worker: ' + raw.substring(0,200)); }
+    if (data.error) throw new Error('API error: ' + (data.error.message || JSON.stringify(data.error)));
+    var text = (data.content || []).map(function(b){ return b.text || ''; }).join('');
+    if (!text) throw new Error('Empty response. Please try again.');
 
-    let data;
-    try {
-      data = JSON.parse(rawText);
-    } catch(parseErr) {
-      throw new Error('Invalid JSON from Worker: ' + rawText.substring(0, 200));
-    }
-
-    console.log('Data structure:', JSON.stringify(data).substring(0, 300));
-
-    if (data.error) throw new Error('Worker error: ' + (data.error.message || data.error));
-
-    const text = data.content?.[0]?.text || '';
-    if (!text) throw new Error('No text in response. Full response: ' + JSON.stringify(data).substring(0, 300));
-
-    parseAndRender(text, setName, setCodes, playPacks, collectorPacks);
+    parseAndRender(text, setCodes);
 
   } catch(err) {
-    console.error('Full error:', err);
     showError('Error: ' + err.message);
   } finally {
     setThinking(false);
   }
 }
 
-function buildPrompt(setName, setCodes, playPacks, collectorPacks, playText, collectorText, threshold) {
-  const codesArr = setCodes.split(',').map(s => s.trim().toUpperCase());
-  const mainCode = codesArr[0] || 'MAIN';
-  const extra1 = codesArr[1] || '';
-  const extra2 = codesArr[2] || '';
-  const extra3 = codesArr[3] || '';
-
-  return `You are an MTG EV sheet builder assistant for TedFarkass, an MTG content creator. Your job is to read Wizards of the Coast booster pack contents and output exact slot data for Google Sheets EV templates.
-
-SET INFO:
-- Set Name: ${setName || 'Unknown Set'}
-- Main Set Code: ${mainCode}
-- Extra1 Code: ${extra1 || 'none'}
-- Extra2 Code: ${extra2 || 'none'}  
-- Extra3 Code: ${extra3 || 'none'}
-- Play Packs per Box: ${playPacks || '30'}
-- Collector Packs per Box: ${collectorPacks || '12'}
-- "Less than 1%" value to use: ${threshold === 'skip' ? 'SKIP these slots entirely' : threshold}
-
-POOL NAMING RULES:
-- Main set cards → Pool = MAIN
-- Extra1 set cards → Pool = EXTRA1
-- Extra2 set cards → Pool = EXTRA2
-- Extra3 set cards → Pool = EXTRA3
-
-RARITY CODES: C = common, U = uncommon, R = rare, M = mythic, RM = rare+mythic mixed pool, ANY = any rarity
-
-FINISH TYPES: nonfoil, foil, surge, etched, fracture
-
-TAG RULES — only tag cards that are a special treatment. Standard default-frame cards get no tag (leave blank). Use these tag names:
-- scene, sewer, woodblock, borderless, borderless_character, extended_art, artist, bonus_sheet, cid_variant, secret_rendezvous, dual_land, basic_land, pixel, headliner, japan_showcase, chocobo, chocobo_serialized, pizza_basic, rooftop_basic, source, tmc_new, tmc_reprint, tmc_borderless
-- For new sets coin new tag names that are descriptive and lowercase_underscore format
-
-ULTRA RARE EXCLUDE: Flag slots as ultra_rare=YES if they are lottery-level pulls (serialized cards, extremely rare chase cards, headliners). Normal rare/mythic treatments are NOT ultra rare.
-
-${playText ? `PLAY BOOSTER CONTENTS:
-${playText}` : ''}
-
-${collectorText ? `COLLECTOR BOOSTER CONTENTS:
-${collectorText}` : ''}
-
-OUTPUT FORMAT — respond with EXACTLY these labeled sections, nothing else:
-
-===CONFIG===
-MAIN
-${extra1}
-${extra2}
-${extra3}
-===END_CONFIG===
-
-===EV_PLAY===
-Slot Name\tCount per Pack\tPool\tRarity\tFinish\tTag\tAvg All\tSlot EV
-[one row per slot, tab separated, Avg All and Slot EV columns LEFT BLANK]
-===END_EV_PLAY===
-
-===COLLECTOR_SLOTS===
-Slot Name\tCount per Pack\tPool\tRarity Group\tFinish Type\tTag Filter\tAvg Value (ALL)\tSlot EV (ALL)\tAvg Value (No Serialized)\tSlot EV (No Serialized)
-[one row per slot, tab separated. Avg/EV columns LEFT BLANK except ultra rare rows which get 0\t0\t0\t0]
-===END_COLLECTOR_SLOTS===
-
-===TAGS===
-[tag_name]: Description of which cards get this tag and why. One per line.
-===END_TAGS===
-
-===QUESTIONS===
-[List any ambiguous "less than 1%" values or unclear slots that need human review. If none, write NONE.]
-===END_QUESTIONS===
-
-IMPORTANT RULES:
-1. Tab-separate all columns — no section headers or dividers in the data rows
-2. Count per Pack must be a decimal number — percentages divided by 100 for single-card slots, or the actual count for multi-card slots
-3. For multi-card slots (e.g. "3 Traditional foil commons"), multiply each sub-percentage by the card count
-4. Verify slot totals make sense — e.g. a single slot's sub-rows should sum to 1.0, a 3-card slot's sub-rows should sum to 3.0
-5. Leave Avg and Slot EV columns completely blank (just tab characters) — except ultra rare No Serialized which gets 0
-6. Pool must be MAIN, EXTRA1, EXTRA2, or EXTRA3 — never use actual set codes in the Pool column
-7. Be precise with the math — convert all percentages accurately`;
+function extract(text, tag) {
+  var rx = new RegExp('===' + tag + '===([\\s\\S]*?)===END_' + tag + '===');
+  var m = text.match(rx);
+  return m ? m[1].trim() : '';
 }
 
-function parseAndRender(text, setName, setCodes, playPacks, collectorPacks) {
-  const extract = (tag) => {
-    const rx = new RegExp(`===${tag}===([\\s\\S]*?)===END_${tag}===`);
-    const m = text.match(rx);
-    return m ? m[1].trim() : '';
-  };
+function parseAndRender(text, setCodes) {
+  var config    = extract(text, 'CONFIG');
+  var evPlay    = extract(text, 'EV_PLAY');
+  var colSlots  = extract(text, 'COLLECTOR_SLOTS');
+  var tags      = extract(text, 'TAGS');
+  var sanity    = extract(text, 'SANITY');
+  var questions = extract(text, 'QUESTIONS');
 
-  const config    = extract('CONFIG');
-  const evPlay    = extract('EV_PLAY');
-  const collector = extract('COLLECTOR_SLOTS');
-  const tags      = extract('TAGS');
-  const questions = extract('QUESTIONS');
+  // Config
+  document.getElementById('configOut').textContent = config;
 
-  // Config output
-  document.getElementById('configOutput').textContent = config;
+  // EV Play rows — strip first line if it looks like a header
+  var evLines = evPlay.split('\n').filter(function(l){ return l.trim(); });
+  if (evLines[0] && evLines[0].toLowerCase().includes('slot name')) evLines.shift();
+  document.getElementById('evPlayOut').textContent = evLines.join('\n');
 
-  // EV Play — strip header row
-  const evLines = evPlay.split('\n');
-  const evData  = evLines.slice(1).join('\n'); // remove header
-  document.getElementById('evPlayOutput').textContent = evData;
+  // Collector rows — strip header
+  var colLines = colSlots.split('\n').filter(function(l){ return l.trim(); });
+  if (colLines[0] && colLines[0].toLowerCase().includes('slot name')) colLines.shift();
+  document.getElementById('colSlotsOut').textContent = colLines.join('\n');
 
-  // Collector — strip header row
-  const colLines = collector.split('\n');
-  const colData  = colLines.slice(1).join('\n');
-  document.getElementById('collectorOutput').textContent = colData;
+  // EV_Play formulas
+  var evPlayFormulasEl = document.getElementById('evPlayFormulas');
+  evPlayFormulasEl.innerHTML = '';
+  var evPlayF = buildEVPlayFormula(setCodes);
+  addFormulaGroup(evPlayFormulasEl, 'COL I — Avg All (paste in I2, drag down)', evPlayF, 'badge-g');
+  addFormulaGroup(evPlayFormulasEl, 'COL J — Slot EV (paste in J2, drag down)', '=D2*I2', 'badge-g');
+
+  // Collector formulas
+  var colFormulasEl = document.getElementById('colSlotFormulas');
+  colFormulasEl.innerHTML = '';
+  var colG = buildColSlotFormulaG(setCodes);
+  var colI = buildColSlotFormulaI(setCodes);
+  addFormulaGroup(colFormulasEl, 'COL G — Avg Value ALL (paste in G2, drag down)', colG, 'badge-b');
+  addFormulaGroup(colFormulasEl, 'COL H — Slot EV ALL (paste in H2, drag down)', '=IFERROR(B2*G2,0)', 'badge-b');
+  addFormulaGroup(colFormulasEl, 'COL I — Avg Value No Serialized (paste in I2, drag down)', colI, 'badge-b');
+  addFormulaGroup(colFormulasEl, 'COL J — Slot EV No Serialized (paste in J2, drag down)', '=IFERROR(B2*I2,0)', 'badge-b');
 
   // Tags
-  const tagsEl = document.getElementById('tagsOutput');
+  var tagsEl = document.getElementById('tagsOut');
   tagsEl.innerHTML = '';
   if (tags && tags !== 'NONE') {
-    tags.split('\n').forEach(line => {
+    tags.split('\n').forEach(function(line) {
       if (!line.trim()) return;
-      const colonIdx = line.indexOf(':');
-      if (colonIdx > -1) {
-        const tagName = line.substring(0, colonIdx).trim();
-        const tagDesc = line.substring(colonIdx + 1).trim();
-        const item = document.createElement('div');
+      var ci = line.indexOf(':');
+      if (ci > -1) {
+        var item = document.createElement('div');
         item.className = 'tag-item';
-        item.innerHTML = `<div class="tag-name">${tagName}</div><div class="tag-desc">${tagDesc}</div>`;
+        item.innerHTML = '<div class="tag-name">' + line.substring(0,ci).trim() + '</div>' +
+                         '<div class="tag-desc">' + line.substring(ci+1).trim() + '</div>';
         tagsEl.appendChild(item);
       }
     });
   } else {
-    tagsEl.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;padding:0.5rem;">No special tags needed for this set.</div>';
+    tagsEl.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;">No special tags needed for this set.</div>';
+  }
+
+  // Sanity
+  var sanityEl = document.getElementById('sanityOut');
+  var sanityBlock = document.getElementById('sanityBlock');
+  sanityEl.innerHTML = '';
+  if (sanity) {
+    sanityBlock.style.display = '';
+    sanity.split('\n').forEach(function(line) {
+      if (!line.trim()) return;
+      var item = document.createElement('div');
+      if (line.startsWith('PASS')) {
+        item.className = 'qst-item sanity-pass';
+        item.textContent = '✓ ' + line.replace(/^PASS:\s*/,'');
+        item.style.background = 'rgba(16,185,129,0.06)';
+        item.style.border = '1px solid rgba(16,185,129,0.2)';
+        item.style.color = 'var(--green)';
+      } else if (line.startsWith('WARN')) {
+        item.className = 'qst-item sanity-warn';
+        item.textContent = line.replace(/^WARN:\s*/,'');
+      } else if (line.startsWith('FLAG')) {
+        item.className = 'warn-item';
+        item.textContent = line.replace(/^FLAG:\s*/,'');
+      } else {
+        item.className = 'qst-item';
+        item.textContent = line;
+      }
+      item.style.cssText += 'display:flex;';
+      sanityEl.appendChild(item);
+    });
+  } else {
+    sanityBlock.style.display = 'none';
   }
 
   // Questions
-  const qBlock = document.getElementById('questionsBlock');
-  const qEl    = document.getElementById('questionsOutput');
-  qEl.innerHTML = '';
-  if (questions && questions !== 'NONE' && questions.trim()) {
-    qBlock.style.display = 'block';
-    questions.split('\n').forEach(line => {
-      if (!line.trim()) return;
-      const item = document.createElement('div');
-      item.className = 'question-item';
-      item.textContent = line.replace(/^[-•*]\s*/, '').trim();
-      qEl.appendChild(item);
+  var questEl = document.getElementById('questOut');
+  var questBlock = document.getElementById('questBlock');
+  questEl.innerHTML = '';
+  if (questions && questions !== 'NONE') {
+    questBlock.style.display = '';
+    questions.split('\n').forEach(function(line) {
+      if (!line.trim() || line === 'NONE') return;
+      var item = document.createElement('div');
+      item.className = 'qst-item';
+      item.textContent = line.replace(/^[-•*]\s*/,'').trim();
+      questEl.appendChild(item);
     });
   } else {
-    qBlock.style.display = 'none';
+    questBlock.style.display = 'none';
   }
 
-  showOutput();
-}
-
-function copyOutput(id, btn) {
-  const text = document.getElementById(id).textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    btn.textContent = '✓ Copied!';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-  });
-}
-
-function copyTagsAsText(btn) {
-  const items = document.querySelectorAll('#tagsOutput .tag-item');
-  const lines = Array.from(items).map(item => {
-    const name = item.querySelector('.tag-name').textContent;
-    const desc = item.querySelector('.tag-desc').textContent;
-    return `${name}: ${desc}`;
-  }).join('\n');
-  navigator.clipboard.writeText(lines).then(() => {
-    btn.textContent = '✓ Copied!';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copy as Text'; btn.classList.remove('copied'); }, 2000);
-  });
-}
-
-function setThinking(show, msg) {
-  const el = document.getElementById('thinking');
-  const btn = document.getElementById('buildBtn');
-  if (show) {
-    el.classList.add('visible');
-    document.getElementById('thinkingText').textContent = msg || 'Thinking...';
-    btn.disabled = true;
-    btn.textContent = '⏳ Building...';
-  } else {
-    el.classList.remove('visible');
-    btn.disabled = false;
-    btn.innerHTML = '<span class="btn-icon">⚡</span> Build EV Template Rows';
-  }
-}
-
-function showError(msg) {
-  const el = document.getElementById('errorMsg');
-  el.textContent = msg;
-  el.classList.add('visible');
-}
-
-function hideError() {
-  document.getElementById('errorMsg').classList.remove('visible');
-}
-
-function showOutput() {
   document.getElementById('outputArea').classList.add('visible');
-}
-
-function hideOutput() {
-  document.getElementById('outputArea').classList.remove('visible');
+  document.getElementById('outputArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 </script>
 </body>
