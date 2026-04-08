@@ -494,7 +494,14 @@ function buildPrompt(setName, setCodes, playPacks, collectorPacks, playText, col
 'Col F: Rarity Code (C, U, R, M, RM) — formula reads $F\n' +
 'Col G: Finish (nonfoil or foil) — formula reads $G\n' +
 'Col H: Tag (tag name if special treatment, blank if standard pool) — formula reads $H\n' +
-'Output EXACTLY 6 tab-separated values per row. NO column headers. NO duplicate count column.\n\n' +
+'OUTPUT EXACTLY 6 tab-separated values per row in this order:\n' +
+'1. Slot Name\n' +
+'2. Count per Pack\n' +
+'3. Pool\n' +
+'4. Rarity Code\n' +
+'5. Finish\n' +
+'6. Tag (blank if none)\n' +
+'DO NOT repeat or duplicate the count. DO NOT add a 7th column.\n\n' +
 
 'RARITY CODES:\n' +
 'C = common, U = uncommon, R = rare, M = mythic, RM = rare+mythic mixed pool\n\n' +
@@ -635,9 +642,26 @@ function parseAndRender(text, setCodes) {
   // Config
   document.getElementById('configOut').textContent = config;
 
-  // EV Play rows — strip first line if it looks like a header
+  // EV Play rows — strip header, then auto-remove duplicate count column
   var evLines = evPlay.split('\n').filter(function(l){ return l.trim(); });
   if (evLines[0] && evLines[0].toLowerCase().includes('slot name')) evLines.shift();
+
+  // Auto-detect and remove duplicate count column
+  // Expected: Name|Count|Pool|Rarity|Finish|Tag (6 cols)
+  // Bad:      Name|Count|Pool|Count|Rarity|Finish|Tag (7 cols, col 2 == col 4)
+  evLines = evLines.map(function(line) {
+    var cols = line.split('\t');
+    if (cols.length === 7) {
+      var count2 = parseFloat(cols[1]);
+      var count4 = parseFloat(cols[3]);
+      // If col 2 and col 4 are both numeric and equal, col 4 is the duplicate
+      if (!isNaN(count2) && !isNaN(count4) && Math.abs(count2 - count4) < 0.0001) {
+        cols.splice(3, 1); // remove col 4 (index 3)
+      }
+    }
+    return cols.join('\t');
+  });
+
   document.getElementById('evPlayOut').textContent = evLines.join('\n');
 
   // Collector rows — strip header
