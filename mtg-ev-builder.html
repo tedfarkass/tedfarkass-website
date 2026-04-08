@@ -29,16 +29,13 @@ h1{font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;line-height:1.1;margin-bot
 label{display:block;font-size:0.78rem;font-weight:600;color:var(--muted2);margin-bottom:0.4rem;letter-spacing:0.05em;}
 input[type="text"],textarea,select{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Space Mono',monospace;font-size:0.82rem;padding:0.75rem 1rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s;resize:vertical;}
 input[type="text"]:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,58,237,0.15);}
-textarea{min-height:180px;line-height:1.6;}
+textarea{min-height:240px;line-height:1.6;}
 .hint{font-size:0.7rem;color:var(--muted);margin-top:0.35rem;font-family:'Space Mono',monospace;line-height:1.5;}
 .threshold-box{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:1rem;margin-top:0.75rem;}
 .threshold-title{font-size:0.8rem;font-weight:700;color:var(--gold);margin-bottom:0.5rem;}
 .threshold-opts{display:flex;gap:1rem;flex-wrap:wrap;}
 .threshold-opt{display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.8rem;color:var(--muted2);}
 .threshold-opt input[type="radio"]{width:auto;accent-color:var(--accent2);}
-.fetch-btn{padding:0.75rem 1.25rem;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap;flex-shrink:0;}
-.fetch-btn:hover{color:var(--text);border-color:var(--accent);}
-.fetch-btn:disabled{opacity:0.5;cursor:not-allowed;}
 .build-btn{width:100%;padding:1rem 2rem;background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);border:none;border-radius:10px;color:#fff;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;margin-bottom:1.25rem;position:relative;overflow:hidden;}
 .build-btn:hover{opacity:0.9;}
 .build-btn:disabled{opacity:0.5;cursor:not-allowed;}
@@ -127,19 +124,6 @@ footer{margin-top:4rem;padding:2rem 0;border-top:1px solid var(--border);text-al
   </div>
 </div>
 
-<!-- ARTICLE URL FETCH -->
-<div class="card">
-  <div class="section-label">Wizards Article URL <span style="font-size:0.65rem;color:var(--muted);letter-spacing:0.05em;font-weight:400;">(optional — fetches pull rates automatically)</span></div>
-  <div style="display:flex;gap:0.75rem;align-items:flex-start;flex-wrap:wrap;">
-    <div style="flex:1;min-width:200px;">
-      <input type="text" id="articleUrl" placeholder="https://magic.wizards.com/en/news/feature/collecting-final-fantasy..."/>
-      <p class="hint">// Paste the Wizards "Collecting [Set Name]" article URL — the builder will read the booster contents automatically</p>
-    </div>
-    <button class="fetch-btn" id="fetchBtn" onclick="fetchArticle()">↓ Fetch Article</button>
-  </div>
-  <div id="fetchStatus" style="display:none;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.72rem;padding:0.6rem 1rem;border-radius:6px;"></div>
-</div>
-
 <!-- PLAY BOOSTER -->
 <div class="card">
   <div class="section-label">Play Booster Contents</div>
@@ -155,7 +139,7 @@ Each Play Booster contains:
 • 1 Wildcard (any rarity)
 • 1 Traditional foil of any rarity (from any set in the booster)
 • In less than 1% of boosters, one card is replaced with a special card..."></textarea>
-  <p class="hint">// Copy directly from the Wizards collecting article — include all bullet points, percentages, and replacement clauses</p>
+  <p class="hint">// Go to the Wizards "Collecting [Set Name]" article → find the Play Booster section → copy the full bullet point breakdown including all percentages and replacement clauses</p>
 </div>
 
 <!-- COLLECTOR BOOSTER -->
@@ -172,7 +156,7 @@ Each Collector Booster contains:
   - 7:1 ratio
 • 1 Extended art rare or mythic rare (nonfoil)
 ..."></textarea>
-  <p class="hint">// Include all slot groups, percentages, foil treatments (surge foil, fracture foil, etc.), and any serialized card info</p>
+  <p class="hint">// Same article → find the Collector Booster section → copy the full bullet point breakdown including foil treatments (surge foil, fracture foil), percentages, and serialized card info</p>
 </div>
 
 <!-- OPTIONS -->
@@ -275,73 +259,6 @@ Each Collector Booster contains:
 
 <script>
 // ── Helpers ─────────────────────────────────────────────────────────────────
-// Article fetcher — calls Worker to fetch Wizards page server-side
-async function fetchArticle() {
-  var url = document.getElementById('articleUrl').value.trim();
-  if (!url) { alert('Please paste a Wizards article URL first.'); return; }
-
-  var btn = document.getElementById('fetchBtn');
-  var status = document.getElementById('fetchStatus');
-  btn.disabled = true; btn.textContent = '↓ Fetching...';
-  status.style.display = 'block';
-  status.style.background = 'rgba(168,85,247,0.08)';
-  status.style.border = '1px solid rgba(168,85,247,0.2)';
-  status.style.color = 'var(--accent2)';
-  status.textContent = 'Fetching article from Wizards website...';
-
-  try {
-    var res = await fetch('https://mtg-ev-builder.tedfarkasstv.workers.dev', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fetchUrl: url })
-    });
-
-    var raw = await res.text();
-    var data;
-    try { data = JSON.parse(raw); } catch(e) { throw new Error('Bad response: ' + raw.substring(0,200)); }
-    if (data.error) throw new Error(data.error);
-
-    var articleText = data.text || '';
-    if (!articleText) throw new Error('No text content returned from article.');
-
-    // Split into play booster and collector booster sections
-    var playMatch = articleText.match(/play booster[\s\S]*?(?=collector booster|draft booster|set booster|$)/i);
-    var colMatch  = articleText.match(/collector booster[\s\S]*?(?=play booster|draft booster|set booster|$)/i);
-
-    if (playMatch) {
-      document.getElementById('playText').value = playMatch[0].trim().substring(0, 3000);
-    }
-    if (colMatch) {
-      document.getElementById('collectorText').value = colMatch[0].trim().substring(0, 3000);
-    }
-
-    // If we didn't find clear sections, put everything in play text
-    if (!playMatch && !colMatch) {
-      document.getElementById('playText').value = articleText.substring(0, 4000);
-    }
-
-    // Try to extract set name from article
-    var nameMatch = articleText.match(/collecting\s+([A-Z][^\n.]+)/i);
-    if (nameMatch && !document.getElementById('setName').value) {
-      document.getElementById('setName').value = nameMatch[1].trim().replace(/\s+/g,' ');
-    }
-
-    status.style.background = 'rgba(16,185,129,0.08)';
-    status.style.border = '1px solid rgba(16,185,129,0.2)';
-    status.style.color = 'var(--green)';
-    status.textContent = '✓ Article fetched! Review the text boxes below and fill in set codes, then build.';
-
-  } catch(err) {
-    status.style.background = 'rgba(239,68,68,0.08)';
-    status.style.border = '1px solid rgba(239,68,68,0.2)';
-    status.style.color = 'var(--red)';
-    status.textContent = '✗ Error: ' + err.message;
-  } finally {
-    btn.disabled = false; btn.textContent = '↓ Fetch Article';
-  }
-}
-
-
 function copyEl(id, btn) {
   var text = document.getElementById(id).textContent;
   navigator.clipboard.writeText(text).then(function() {
