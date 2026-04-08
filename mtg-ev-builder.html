@@ -36,6 +36,9 @@ textarea{min-height:180px;line-height:1.6;}
 .threshold-opts{display:flex;gap:1rem;flex-wrap:wrap;}
 .threshold-opt{display:flex;align-items:center;gap:0.4rem;cursor:pointer;font-size:0.8rem;color:var(--muted2);}
 .threshold-opt input[type="radio"]{width:auto;accent-color:var(--accent2);}
+.fetch-btn{padding:0.75rem 1.25rem;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap;flex-shrink:0;}
+.fetch-btn:hover{color:var(--text);border-color:var(--accent);}
+.fetch-btn:disabled{opacity:0.5;cursor:not-allowed;}
 .build-btn{width:100%;padding:1rem 2rem;background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);border:none;border-radius:10px;color:#fff;font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;margin-bottom:1.25rem;position:relative;overflow:hidden;}
 .build-btn:hover{opacity:0.9;}
 .build-btn:disabled{opacity:0.5;cursor:not-allowed;}
@@ -122,6 +125,19 @@ footer{margin-top:4rem;padding:2rem 0;border-top:1px solid var(--border);text-al
       <input type="text" id="collectorPacks" placeholder="e.g. 12"/>
     </div>
   </div>
+</div>
+
+<!-- ARTICLE URL FETCH -->
+<div class="card">
+  <div class="section-label">Wizards Article URL <span style="font-size:0.65rem;color:var(--muted);letter-spacing:0.05em;font-weight:400;">(optional — fetches pull rates automatically)</span></div>
+  <div style="display:flex;gap:0.75rem;align-items:flex-start;flex-wrap:wrap;">
+    <div style="flex:1;min-width:200px;">
+      <input type="text" id="articleUrl" placeholder="https://magic.wizards.com/en/news/feature/collecting-final-fantasy..."/>
+      <p class="hint">// Paste the Wizards "Collecting [Set Name]" article URL — the builder will read the booster contents automatically</p>
+    </div>
+    <button class="fetch-btn" id="fetchBtn" onclick="fetchArticle()">↓ Fetch Article</button>
+  </div>
+  <div id="fetchStatus" style="display:none;margin-top:0.75rem;font-family:'Space Mono',monospace;font-size:0.72rem;padding:0.6rem 1rem;border-radius:6px;"></div>
 </div>
 
 <!-- PLAY BOOSTER -->
@@ -259,6 +275,74 @@ Each Collector Booster contains:
 
 <script>
 // ── Helpers ─────────────────────────────────────────────────────────────────
+// Article fetcher — calls Worker to fetch Wizards page server-side
+async function fetchArticle() {
+  var url = document.getElementById('articleUrl').value.trim();
+  if (!url) { alert('Please paste a Wizards article URL first.'); return; }
+
+  var btn = document.getElementById('fetchBtn');
+  var status = document.getElementById('fetchStatus');
+  btn.disabled = true; btn.textContent = '↓ Fetching...';
+  status.style.display = 'block';
+  status.style.background = 'rgba(168,85,247,0.08)';
+  status.style.border = '1px solid rgba(168,85,247,0.2)';
+  status.style.color = 'var(--accent2)';
+  status.textContent = 'Fetching article from Wizards website...';
+
+  try {
+    var res = await fetch('https://mtg-ev-builder.tedfarkasstv.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fetchUrl: url })
+    });
+
+    var raw = await res.text();
+    var data;
+    try { data = JSON.parse(raw); } catch(e) { throw new Error('Bad response: ' + raw.substring(0,200)); }
+    if (data.error) throw new Error(data.error);
+
+    var articleText = data.text || '';
+    if (!articleText) throw new Error('No text content returned from article.');
+
+    // Split into play booster and collector booster sections
+    var playMatch = articleText.match(/play booster[\s\S]*?(?=collector booster|draft booster|set booster|$)/i);
+    var colMatch  = articleText.match(/collector booster[\s\S]*?(?=play booster|draft booster|set booster|$)/i);
+
+    if (playMatch) {
+      document.getElementById('playText').value = playMatch[0].trim().substring(0, 3000);
+    }
+    if (colMatch) {
+      document.getElementById('collectorText').value = colMatch[0].trim().substring(0, 3000);
+    }
+
+    // If we didn't find clear sections, put everything in play text
+    if (!playMatch && !colMatch) {
+      document.getElementById('playText').value = articleText.substring(0, 4000);
+    }
+
+    // Try to extract set name from article
+    var nameMatch = articleText.match(/collecting\s+([A-Z][^
+\.]+)/i);
+    if (nameMatch && !document.getElementById('setName').value) {
+      document.getElementById('setName').value = nameMatch[1].trim().replace(/\s+/g,' ');
+    }
+
+    status.style.background = 'rgba(16,185,129,0.08)';
+    status.style.border = '1px solid rgba(16,185,129,0.2)';
+    status.style.color = 'var(--green)';
+    status.textContent = '✓ Article fetched! Review the text boxes below and fill in set codes, then build.';
+
+  } catch(err) {
+    status.style.background = 'rgba(239,68,68,0.08)';
+    status.style.border = '1px solid rgba(239,68,68,0.2)';
+    status.style.color = 'var(--red)';
+    status.textContent = '✗ Error: ' + err.message;
+  } finally {
+    btn.disabled = false; btn.textContent = '↓ Fetch Article';
+  }
+}
+
+
 function copyEl(id, btn) {
   var text = document.getElementById(id).textContent;
   navigator.clipboard.writeText(text).then(function() {
@@ -298,10 +382,20 @@ function showError(msg) {
 function hideError() { document.getElementById('errorMsg').classList.remove('visible'); }
 
 // ── Formula builder (deterministic, no API needed) ───────────────────────────
-function buildEVPlayFormula(setCodes) {
+function buildEVPlayFormula(setCodes, customTags) {
   var codes = setCodes.split(',').map(function(s){ return s.trim().toLowerCase(); }).filter(Boolean);
   var pattern = codes.join('|');
-  var evPlayExclude = 'dual_land|rooftop_basic|pizza_basic|scene|sewer|silhouette|extended_art|japan_showcase|headliner|tmc_borderless|tmc_new|tmc_reprint|pixel|source';
+  // Base tags always excluded from standard pool slots
+  var baseTags = ['dual_land','basic_land','scene','extended_art','borderless','borderless_character',
+    'japan_showcase','headliner','pixel','source','sewer','silhouette',
+    'tmc_borderless','tmc_new','tmc_reprint','rooftop_basic','pizza_basic'];
+  // Add any set-specific tags Claude identified
+  if (customTags && customTags.length) {
+    customTags.forEach(function(t) {
+      if (baseTags.indexOf(t) === -1) baseTags.push(t);
+    });
+  }
+  var evPlayExclude = baseTags.join('|');
 
   return '=IFERROR(\n' +
 '  AVERAGE(\n' +
@@ -539,6 +633,10 @@ function buildPrompt(setName, setCodes, playPacks, collectorPacks, playText, col
 (playText ? 'PLAY BOOSTER CONTENTS:\n' + playText + '\n\n' : '') +
 (collectorText ? 'COLLECTOR BOOSTER CONTENTS:\n' + collectorText + '\n\n' : '') +
 
+'IMPORTANT CONTEXT:\n' +
+'The booster contents below may have been extracted from a Wizards of the Coast article.\n' +
+'Read ALL the text carefully — pull rates, treatment names, and special slots are all important.\n' +
+'Identify set-specific tag names from the treatments described (e.g. woodblock, borderless_character, etc.)\n\n' +
 'CRITICAL INSTRUCTIONS:\n' +
 '1. Think through EACH slot step by step before outputting\n' +
 '2. For each slot, identify: what cards can appear? what pool? what rarity? what finish? any special tag?\n' +
@@ -632,6 +730,22 @@ function extract(text, tag) {
 }
 
 function parseAndRender(text, setCodes) {
+  // Extract tag names from TAGS section for use in formula exclusion list
+  var parsedTags = [];
+  var rawTags = extract(text, 'TAGS');
+  if (rawTags) {
+    rawTags.split('\n').forEach(function(line) {
+      var ci = line.indexOf(':');
+      if (ci > -1) {
+        var tagName = line.substring(0, ci).trim().toLowerCase().replace(/\s+/g,'_');
+        // Only include tags that look like special treatments (not base pool tags)
+        if (tagName && tagName.length > 2 && tagName !== 'none') {
+          parsedTags.push(tagName);
+        }
+      }
+    });
+  }
+
   var config    = extract(text, 'CONFIG');
   var evPlay    = extract(text, 'EV_PLAY');
   var colSlots  = extract(text, 'COLLECTOR_SLOTS');
@@ -672,7 +786,7 @@ function parseAndRender(text, setCodes) {
   // EV_Play formulas
   var evPlayFormulasEl = document.getElementById('evPlayFormulas');
   evPlayFormulasEl.innerHTML = '';
-  var evPlayF = buildEVPlayFormula(setCodes);
+  var evPlayF = buildEVPlayFormula(setCodes, parsedTags);
   addFormulaGroup(evPlayFormulasEl, 'COL I — Avg All (paste in I2, drag down)', evPlayF, 'badge-g');
   addFormulaGroup(evPlayFormulasEl, 'COL J — Slot EV (paste in J2, drag down)', '=D2*I2', 'badge-g');
 
