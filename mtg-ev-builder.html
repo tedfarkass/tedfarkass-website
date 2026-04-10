@@ -201,14 +201,6 @@ Each Collector Booster contains:
     <div class="out-content" id="configOut"></div>
   </div>
 
-  <!-- Sanity / Warnings -->
-  <div class="out-block" id="sanityBlock" style="display:none">
-    <div class="out-header">
-      <div class="out-title">🔍 Sanity Checks <span class="badge badge-y">Review Before Pasting</span></div>
-    </div>
-    <div class="qst-content" id="sanityOut"></div>
-  </div>
-
   <!-- EV Play rows -->
   <div class="out-block">
     <div class="out-header">
@@ -253,12 +245,21 @@ Each Collector Booster contains:
   </div>
 
   <!-- Questions -->
+  <!-- Sanity / Warnings -->
+  <div class="out-block" id="sanityBlock" style="display:none">
+    <div class="out-header">
+      <div class="out-title">🔍 Sanity Checks <span class="badge badge-y">Review Before Pasting</span></div>
+    </div>
+    <div class="qst-content" id="sanityOut"></div>
+  </div>
+
+  <!-- Questions + Answer Form -->
   <div class="out-block" id="questBlock" style="display:none">
     <div class="out-header">
       <div class="out-title">❓ Flagged Questions <span class="badge badge-r">Needs Your Input</span></div>
     </div>
     <div class="qst-content" id="questOut"></div>
-    <div class="answer-form" id="answerForm" style="border-top:1px solid var(--border);"></div>
+    <div class="answer-form" id="answerForm" style="border-top:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;"></div>
     <div style="padding:0 1.25rem 1.25rem;">
       <button class="submit-answers-btn" id="submitAnswersBtn" onclick="submitAnswers()">↻ Rebuild With My Answers</button>
     </div>
