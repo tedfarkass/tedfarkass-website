@@ -259,7 +259,6 @@ Each Collector Booster contains:
       <div class="out-title">❓ Flagged Questions <span class="badge badge-r">Needs Your Input</span></div>
     </div>
     <div class="qst-content" id="questOut"></div>
-    <div class="answer-form" id="answerForm" style="border-top:1px solid var(--border);padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;"></div>
     <div style="padding:0 1.25rem 1.25rem;">
       <button class="submit-answers-btn" id="submitAnswersBtn" onclick="submitAnswers()">↻ Rebuild With My Answers</button>
     </div>
@@ -802,12 +801,10 @@ function parseAndRender(text, setCodes) {
     sanityBlock.style.display = 'none';
   }
 
-  // Questions + Answer Form
+  // Questions + Answer inputs inline
   var questEl = document.getElementById('questOut');
-  var answerForm = document.getElementById('answerForm');
   var questBlock = document.getElementById('questBlock');
   questEl.innerHTML = '';
-  answerForm.innerHTML = '';
   storedQuestions = [];
 
   if (questions && questions !== 'NONE') {
@@ -818,25 +815,30 @@ function parseAndRender(text, setCodes) {
       if (!cleanLine) return;
       storedQuestions.push(cleanLine);
 
-      // Question display
+      // Question bubble
       var item = document.createElement('div');
       item.className = 'qst-item';
       item.textContent = (idx+1) + '. ' + cleanLine;
       questEl.appendChild(item);
 
-      // Answer input
-      var answerItem = document.createElement('div');
-      answerItem.className = 'answer-item';
+      // Answer input directly below question
+      var answerWrap = document.createElement('div');
+      answerWrap.style.cssText = 'padding:0 0 0.25rem 0;display:flex;flex-direction:column;gap:0.3rem;';
+
       var label = document.createElement('div');
-      label.className = 'answer-label';
-      label.textContent = 'Your answer to Q' + (idx+1) + ':';
+      label.style.cssText = 'font-family:Space Mono,monospace;font-size:0.65rem;color:var(--accent2);letter-spacing:0.08em;padding:0 0.25rem;';
+      label.textContent = 'Your answer:';
+
       var input = document.createElement('textarea');
-      input.className = 'answer-input';
+      input.style.cssText = 'background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:Space Mono,monospace;font-size:0.78rem;padding:0.6rem 0.9rem;outline:none;resize:none;width:100%;';
       input.rows = 2;
       input.placeholder = 'Type your answer here...';
-      answerItem.appendChild(label);
-      answerItem.appendChild(input);
-      answerForm.appendChild(answerItem);
+      input.addEventListener('focus', function(){ this.style.borderColor='var(--accent)'; });
+      input.addEventListener('blur', function(){ this.style.borderColor='var(--border)'; });
+
+      answerWrap.appendChild(label);
+      answerWrap.appendChild(input);
+      questEl.appendChild(answerWrap);
     });
   } else {
     questBlock.style.display = 'none';
@@ -848,7 +850,7 @@ function parseAndRender(text, setCodes) {
 
 async function submitAnswers() {
   // Collect answers from the form
-  var answerInputs = document.querySelectorAll('.answer-input');
+  var answerInputs = document.getElementById('questOut').querySelectorAll('textarea');
   var answersText = '';
   answerInputs.forEach(function(input, idx) {
     var q = storedQuestions[idx] || ('Question ' + (idx+1));
