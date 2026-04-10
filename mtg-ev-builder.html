@@ -86,6 +86,14 @@ textarea{min-height:240px;line-height:1.6;}
 .sanity-pass{color:var(--green);}
 .sanity-warn{color:var(--gold);}
 .sanity-fail{color:var(--red);}
+.answer-form{padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;}
+.answer-item{display:flex;flex-direction:column;gap:0.4rem;}
+.answer-label{font-family:'Space Mono',monospace;font-size:0.68rem;color:var(--accent2);letter-spacing:0.05em;line-height:1.5;}
+.answer-input{background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'Space Mono',monospace;font-size:0.78rem;padding:0.6rem 0.9rem;outline:none;transition:border-color 0.2s;resize:none;}
+.answer-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,58,237,0.15);}
+.submit-answers-btn{padding:0.75rem 1.5rem;background:linear-gradient(135deg,var(--green) 0%,#059669 100%);border:none;border-radius:8px;color:#fff;font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;transition:all 0.2s;align-self:flex-start;}
+.submit-answers-btn:hover{opacity:0.9;}
+.submit-answers-btn:disabled{opacity:0.5;cursor:not-allowed;}
 
 footer{margin-top:4rem;padding:2rem 0;border-top:1px solid var(--border);text-align:center;font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:0.1em;}
 </style>
@@ -250,6 +258,10 @@ Each Collector Booster contains:
       <div class="out-title">❓ Flagged Questions <span class="badge badge-r">Needs Your Input</span></div>
     </div>
     <div class="qst-content" id="questOut"></div>
+    <div class="answer-form" id="answerForm" style="border-top:1px solid var(--border);"></div>
+    <div style="padding:0 1.25rem 1.25rem;">
+      <button class="submit-answers-btn" id="submitAnswersBtn" onclick="submitAnswers()">↻ Rebuild With My Answers</button>
+    </div>
   </div>
 
 </div>
@@ -606,6 +618,10 @@ main + '\n' +
 '===END_QUESTIONS===';
 }
 
+// ── Stored questions for answer form ────────────────────────────────────────
+var storedQuestions = [];
+var storedBuildParams = {};
+
 // ── Main build function ───────────────────────────────────────────────────────
 async function buildTemplate() {
   var setName       = document.getElementById('setName').value.trim();
@@ -615,6 +631,9 @@ async function buildTemplate() {
   var playText      = document.getElementById('playText').value.trim();
   var collectorText = document.getElementById('collectorText').value.trim();
   var threshold     = document.querySelector('input[name="threshold"]:checked').value;
+
+  // Store params for potential answer resubmission
+  storedBuildParams = { setName, setCodes, playPacks, collectorPacks, playText, collectorText, threshold };
 
   if (!playText && !collectorText) {
     showError('Please paste at least one booster contents section.');
@@ -801,6 +820,60 @@ function parseAndRender(text, setCodes) {
 
   document.getElementById('outputArea').classList.add('visible');
   document.getElementById('outputArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function submitAnswers() {
+  // Collect answers from the form
+  var answerInputs = document.querySelectorAll('.answer-input');
+  var answersText = '';
+  answerInputs.forEach(function(input, idx) {
+    var q = storedQuestions[idx] || ('Question ' + (idx+1));
+    var a = input.value.trim();
+    if (a) answersText += 'Q' + (idx+1) + ': ' + q + '\nA' + (idx+1) + ': ' + a + '\n\n';
+  });
+
+  if (!answersText) {
+    alert('Please answer at least one question before resubmitting.');
+    return;
+  }
+
+  var btn = document.getElementById('submitAnswersBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Rebuilding...';
+  setThinking(true, 'Rebuilding with your answers...');
+  hideError();
+
+  var p = storedBuildParams;
+  var prompt = buildPrompt(p.setName, p.setCodes, p.playPacks, p.collectorPacks, p.playText, p.collectorText, p.threshold);
+
+  // Append answers to the prompt
+  prompt += '\n\n════════════════════════════════════════════\n' +
+    'ADDITIONAL ANSWERS FROM TED\n' +
+    '════════════════════════════════════════════\n' +
+    'Ted has answered the flagged questions. Use these answers to correct any tags, rows, or formulas:\n\n' +
+    answersText +
+    'Please regenerate the full output incorporating these answers.';
+
+  try {
+    var res = await fetch('https://mtg-ev-builder.tedfarkasstv.workers.dev', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] })
+    });
+    var raw = await res.text();
+    var data;
+    try { data = JSON.parse(raw); } catch(e) { throw new Error('Invalid response: ' + raw.substring(0,200)); }
+    if (data.error) throw new Error('API error: ' + (data.error.message || JSON.stringify(data.error)));
+    var text = (data.content || []).map(function(b){ return b.text || ''; }).join('');
+    if (!text) throw new Error('Empty response. Please try again.');
+    parseAndRender(text, p.setCodes);
+  } catch(err) {
+    showError('Error: ' + err.message);
+  } finally {
+    setThinking(false);
+    btn.disabled = false;
+    btn.textContent = '↻ Rebuild With My Answers';
+  }
 }
 </script>
 </body>
